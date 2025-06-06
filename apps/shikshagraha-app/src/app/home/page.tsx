@@ -36,6 +36,7 @@ export default function Home() {
     if (!accToken) {
       // router.replace(''); // Redirect to login page
       router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+      return;
     } else {
       const getProfileData = async () => {
         try {
@@ -95,8 +96,9 @@ export default function Home() {
         throw new Error('NEXT_PUBLIC_PROGRAM_BASE_URL is not defined');
       }
       return `${base}${path}`;
+    } else {
+      return path + localStorage.getItem('accToken');
     }
-    return path;
   };
 
   return (
@@ -147,10 +149,6 @@ export default function Home() {
                   />
                 ))}
             </Box>
-          ) : error ? (
-            <Typography variant="h6" color="error" textAlign="center">
-              {error}
-            </Typography>
           ) : (
             <>
               <Box sx={{ textAlign: 'center', mb: 4 }}>
@@ -173,25 +171,24 @@ export default function Home() {
                 }}
               >
                 {cardData.length > 0 &&
-                  cardData
-                    .map((card, index) => (
-                      <DynamicCard
-                        key={index}
-                        title={card.title}
-                        icon={card.icon}
-                        sx={{
-                          borderRadius: 2,
-                          boxShadow: 3,
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            transform: 'scale(1.05)',
-                            boxShadow: 6,
-                          },
-                          maxWidth: { xs: 280, sm: 350 },
-                        }}
-                        onClick={() => handleCardClick(card)}
-                      />
-                    ))}
+                  cardData.map((card, index) => (
+                    <DynamicCard
+                      key={index}
+                      title={card.title}
+                      icon={card.icon}
+                      sx={{
+                        borderRadius: 2,
+                        boxShadow: 3,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          boxShadow: 6,
+                        },
+                        maxWidth: { xs: 280, sm: 350 },
+                      }}
+                      onClick={() => handleCardClick(card)}
+                    />
+                  ))}
               </Box>
             </>
           )}

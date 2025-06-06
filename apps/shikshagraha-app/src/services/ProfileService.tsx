@@ -10,7 +10,6 @@ interface AuthParams {
   userId: string;
 }
 
-
 export const fetchProfileData = async (userId: string, token: string) => {
   try {
     const response = await fetch(API_ENDPOINTS.userProfileRead, {
@@ -26,7 +25,7 @@ export const fetchProfileData = async (userId: string, token: string) => {
         localStorage.removeItem('accToken');
         localStorage.clear();
       }
-      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE + "?unAuth=true" || '';
       throw new Error('Failed to fetch profile data');
     }
 
@@ -36,7 +35,7 @@ export const fetchProfileData = async (userId: string, token: string) => {
     if (error.status == 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
-      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE + "?unAuth=true" || '';
     }
     console.error('Error fetching profile data:', error);
     return null;
@@ -79,7 +78,6 @@ export const fetchLocationDetails = async (locations: any[]) => {
     return [];
   }
 };
-
 
 export const updateProfile = async (
   userId: string | null,
@@ -218,31 +216,29 @@ export const renderCertificate = async (
   }
 };
 
-export const deactivateUser = async (
-  userId: string,
+export const deleteUserAccount = async (
   token: string,
-  tenantId: string
+  password: string
 ): Promise<any> => {
-  const url = `${process.env.NEXT_PUBLIC_SSUNBIRD_BASE_URL}/user/update/${userId}`;
+  const url = API_ENDPOINTS.deleteAccount;
 
   const headers = {
-    Authorization: `Bearer ${token}`,
-    // tenantId: 'ebae40d1-b78a-4f73-8756-df5e4b060436',
+    'X-auth-token': token,
     'Content-Type': 'application/json',
   };
 
   const data = {
-    userData: {
-      status: 'archived',
-      reason: 'Health Issue',
-    },
+    password: password,
   };
 
   try {
-    const response = await axios.patch(url, data, { headers });
+    const response = await axios.delete(url, {
+      headers,
+      data,
+    });
     return response.data;
   } catch (error) {
-    console.error('Error deactivating user:', error);
+    console.error('Error deleting user account:', error);
     throw error;
   }
 };
@@ -265,7 +261,7 @@ export const resetUserPassword = async (
     });
 
     const data = await response.json();
-console.log(data)
+    console.log(data);
     if (!response.ok) {
       const message =
         data?.error?.[0]?.msg || data?.message || 'Failed to reset password';
@@ -281,5 +277,3 @@ console.log(data)
     };
   }
 };
-
-

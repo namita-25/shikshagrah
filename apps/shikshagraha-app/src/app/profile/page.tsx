@@ -10,7 +10,7 @@ import {
   deleteUser,
   myCourseDetails,
   renderCertificate,
-  deactivateUser,
+  deleteUserAccount,
   resetUserPassword,
 } from '../../services/ProfileService';
 import {
@@ -49,14 +49,17 @@ import {
   IconButton,
   InputAdornment,
   Snackbar,
+  Paper,
+  TableBody,
+  Link,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import OTPDialog from '../../Components/OTPDialog';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+
 export default function Profile({ params }: { params: { id: string } }) {
   const [profileData, setProfileData] = useState(null);
   const [userData, setUserData] = useState(null);
-
   const [locationDetails, setLocationDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,6 +67,8 @@ export default function Profile({ params }: { params: { id: string } }) {
   const [openEmailDialog, setOpenEmailDialog] = useState(false);
   const [openOtpDialog, setOpenOtpDialog] = useState(false);
   const [openConfirmDeleteDialog, setOpenConfirmDeleteDialog] = useState(false);
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
 
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -91,6 +96,7 @@ export default function Profile({ params }: { params: { id: string } }) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [mappedProfile, setMappedProfile] = useState([]);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const [showPassword, setShowPassword] = useState({
     oldPassword: false,
@@ -110,6 +116,11 @@ export default function Profile({ params }: { params: { id: string } }) {
   });
   const [severity, setSeverity] = useState('');
   const [disableReset, setDisableReset] = useState(false);
+  const [expandedFields, setExpandedFields] = useState({
+    'Professional Role': false,
+    'Professional Subrole': false,
+  });
+
   useEffect(() => {
     const getProfileData = async () => {
       setLoading(true);
@@ -141,7 +152,7 @@ export default function Profile({ params }: { params: { id: string } }) {
               },
             ];
             console.log('Mapped profile array:', mappedProfileArray);
-            setMappedProfile(mappedProfileArray); // Assuming you have a `setProfile` state
+            setMappedProfile(mappedProfileArray);
           }
         }
       } catch (err) {
@@ -153,7 +164,6 @@ export default function Profile({ params }: { params: { id: string } }) {
     };
 
     getProfileData();
-    // handleMyCourses();
     setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, [router]);
 
@@ -168,11 +178,12 @@ export default function Profile({ params }: { params: { id: string } }) {
       setCourseDetails(detailsResponse?.result);
     }
   };
+
   const handleViewTest = async (certificateId: string) => {
     try {
       const response = await renderCertificate(certificateId);
       const responseData = JSON.parse(response);
-      const certificateHtml = responseData?.result; // <-- grab HTML from the 'result' field
+      const certificateHtml = responseData?.result;
 
       const blob = new Blob([certificateHtml], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
@@ -189,8 +200,39 @@ export default function Profile({ params }: { params: { id: string } }) {
   const handleLogoutConfirm = () => {
     localStorage.removeItem('accToken');
     localStorage.clear();
+    clearIndexedDB();
     router.push('/');
   };
+
+  function clearIndexedDB() {
+    console.log('db clearing...');
+    indexedDB
+      .databases()
+      .then((databases) => {
+        console.log(databases);
+        databases.forEach((database) => {
+          const deleteRequest = indexedDB.deleteDatabase(database.name);
+
+          deleteRequest.onsuccess = () => {
+            console.log(`Database "${database.name}" deleted successfully.`);
+          };
+
+          deleteRequest.onerror = (event) => {
+            console.error(
+              `Error deleting database "${database.name}":`,
+              event.target.error
+            );
+          };
+
+          deleteRequest.onblocked = () => {
+            console.warn(`Database "${database.name}" deletion is blocked.`);
+          };
+        });
+      })
+      .catch((error) => {
+        console.error('Error retrieving databases:', error);
+      });
+  }
 
   const handleLogoutCancel = () => {
     setShowLogoutModal(false);
@@ -200,137 +242,31 @@ export default function Profile({ params }: { params: { id: string } }) {
   };
   const handleDeleteConfirmation = () => {
     setOpenDeleteDialog(false);
-    setOpenEmailDialog(true);
+    setOpenPasswordDialog(true);
   };
-  const handleOptionChange = (event) => {
-    const selectedValue = event.target.value;
-    console.log('Selected option:', selectedValue);
-    setSelectedOption(selectedValue);
-    setValue(selectedValue === 'email' ? profileData.email : profileData.phone);
-  };
-  const handleResend = () => {
-    if (onResendOtp) {
-      handleSendOtp(); // Call parent resend function
-      setTimer(30); // Start 30 sec countdown
-    }
-  };
-  const handleSendOtp = async () => {
-    let otpPayload;
-    if (userData.email) {
-      otpPayload = {
-        email: userData.email,
-        reason: 'signup',
-        firstName: userData.firstName,
-        key: 'SendOtpOnMail',
-        replacements: {
-          '{eventName}': 'Shiksha Graha OTP',
-          '{programName}': 'Shiksha Graha',
-        },
-      };
-    } else if (userData.mobile) {
-      console.log('userData.mobile', String(userData?.mobile ?? ''));
-      otpPayload = {
-        mobile: String(userData?.mobile ?? ''), // Ensure fallback to empty string if undefined
-        reason: 'signup',
-      };
-    } else {
-      setShowError(true);
-      setErrorMessage('Either email or mobile must be provided');
-      return;
-    }
 
-    const registrationResponse = await sendOtp(otpPayload);
-    if (
-      registrationResponse?.params?.successmessage === 'OTP sent successfully'
-    ) {
-      setHashCode(registrationResponse?.result?.data?.hash);
-      setErrorMessage(registrationResponse.message);
-      setIsOpenOTP(true);
-    } else {
+  const handlePasswordSubmit = async (password) => {
+    try {
+      const token = localStorage.getItem('accToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await deleteUserAccount(token, password);
+      console.log(response);
+      if (response.responseCode) {
+        setOpenConfirmDeleteDialog(true);
+      }
+
+      // Account deleted successfully
+    } catch (error) {
+      console.error('Error deleting account:', error?.response?.data?.message);
+      setSeverity('error');
       setShowError(true);
       setErrorMessage(
-        registrationResponse.data && registrationResponse.data.params.err
+        error?.response?.data?.message || 'Failed to delete account'
       );
     }
   };
-  const handleVerifyOTP = async (otp: string) => {
-    let verifyOTPpayload;
-    if (userData.email) {
-      verifyOTPpayload = {
-        email: userData.email,
-        reason: 'signup',
-        otp: otp,
-        hash: hashCode,
-      };
-    } else {
-      verifyOTPpayload = {
-        mobile: String(userData?.mobile ?? ''),
-        reason: 'signup',
-        otp: otp,
-        hash: hashCode,
-      };
-    }
-
-    const verifyOtpResponse = await verifyOtpService(verifyOTPpayload);
-    if (
-      verifyOtpResponse?.params?.successmessage === 'OTP validation Sucessfully'
-    ) {
-      handleUserDeactivation();
-    }
-  };
-  const handleProfileOtpResend = async () => {
-    const resendPayload = userData.email
-      ? { email: userData.email, reason: 'signup' }
-      : { mobile: String(userData.mobile ?? ''), reason: 'signup' };
-
-    try {
-      const response = await sendOtp(resendPayload);
-      if (response?.params?.successmessage === 'OTP sent successfully') {
-        // Optionally update the hash code if returned
-        setHashCode(response.result?.hash);
-        console.log('OTP resent successfully');
-      } else {
-        console.error('Failed to resend OTP');
-      }
-    } catch (error) {
-      console.error('Error resending OTP:', error);
-    }
-  };
-
-  const handleUserDeactivation = async () => {
-    try {
-      const userId = localStorage.getItem('userId');
-      const token = localStorage.getItem('accToken');
-
-      if (!userId || !token) {
-        console.error('Missing userId or token');
-        return;
-      }
-
-      const response = await deactivateUser(userId, token);
-
-      const userStatus = response?.result?.basicDetails?.status;
-      if (userStatus === 'archived') {
-        setOpenConfirmDeleteDialog(true); // Open the dialog
-      } else {
-        console.warn('User status is not inactive:', userStatus);
-      }
-    } catch (error) {
-      console.error('Error during OTP submission or user deactivation:', error);
-      // You can show an error dialog or snackbar here
-    }
-  };
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const data = await getUserById(params.id);
-  //       setUserData(data?.result?.user);
-  //     } catch (error) {
-  //       console.error('Error fetching user data:', error);
-  //     }
-  //   };
-  //   fetchData();
-  // }, [params.id]);
 
   const handleDialogOpen = () => setDialogOpen(true);
   const handleDialogClose = () => setDialogOpen(false);
@@ -340,7 +276,7 @@ export default function Profile({ params }: { params: { id: string } }) {
     setShowConfirmPassword((prev) => !prev);
 
   const confirm = () => {
-    router.push(`${process.env.NEXT_PUBLIC_LOGINPAGE}`);
+    router.push('/');
     localStorage.removeItem('accToken');
     localStorage.clear();
   };
@@ -353,28 +289,12 @@ export default function Profile({ params }: { params: { id: string } }) {
       .join(' ');
   };
 
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   const handleClick = () => {
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
-    // Reset all states when closing
     setPasswords({
       oldPassword: '',
       newPassword: '',
@@ -391,7 +311,7 @@ export default function Profile({ params }: { params: { id: string } }) {
     const { name, value } = e.target;
     setPasswords({ ...passwords, [name]: value });
     setDisableReset(false);
-    // Validate on change
+
     if (name === 'newPassword') {
       const passwordRegex =
         /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}"';<>?,./\\]).{8,}$/;
@@ -405,7 +325,6 @@ export default function Profile({ params }: { params: { id: string } }) {
         setErrors({ ...errors, newPassword: '' });
       }
 
-      // Also validate confirm password if it's not empty
       if (passwords.confirmPassword && value !== passwords.confirmPassword) {
         setErrors({
           ...errors,
@@ -430,8 +349,8 @@ export default function Profile({ params }: { params: { id: string } }) {
       }
     }
   };
+
   const handleSubmit = () => {
-    // Validate all fields before submission
     let hasErrors = false;
     const newErrors = { ...errors };
 
@@ -465,18 +384,13 @@ export default function Profile({ params }: { params: { id: string } }) {
     setErrors(newErrors);
 
     if (!hasErrors) {
-      // Submit the form or call your API here
       resetPassword();
-      // handleClose();
     }
   };
+
   const handleCloseSnackbar = () => {
     setShowError(false);
     setErrorMessage('');
-    if (severity === 'success') {
-      router.push('/');
-    }
-    // router.push('/');
   };
 
   const resetPassword = async () => {
@@ -497,23 +411,115 @@ export default function Profile({ params }: { params: { id: string } }) {
         setSeverity('error');
       } else {
         setDisableReset(true);
-        setShowError(true);
-        setErrorMessage('User Password Updated Successfully');
-        setSeverity('success');
-        localStorage.clear();
-        router.push('/');
+        setShowSuccessDialog(true);
+        handleClose();
       }
-
-      // handleClose();
     } catch (error) {
       console.error('Reset password failed:', error);
       setShowError(true);
       setErrorMessage(error);
       setSeverity('error');
+      setIsAuthenticated(true);
     } finally {
       setLoading(false);
     }
   };
+
+  const PasswordConfirmationDialog = ({ open, onClose, onSubmit }) => {
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [showPassworddelete, setShowPassworddelete] = useState(false);
+
+    const handleClickShowPassword = () =>
+      setShowPassworddelete((prev) => !prev);
+
+    const handleSubmit = () => {
+      if (!password) {
+        setError('Password is required');
+        return;
+      }
+      onSubmit(password);
+      onClose();
+    };
+
+    return (
+      <Dialog open={open} onClose={onClose}>
+        <DialogTitle>Confirm Account Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please enter your password to confirm account deletion.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Password"
+            type={showPassworddelete ? 'text' : 'password'}
+            fullWidth
+            variant="standard"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError('');
+            }}
+            error={!!error}
+            helperText={error}
+            InputLabelProps={{
+              sx: {
+                color: '#582E92',
+                '&.Mui-focused': {
+                  color: '#582E92',
+                },
+              },
+            }}
+            InputProps={{
+              disableUnderline: false,
+              sx: {
+                '&:before': {
+                  borderBottom: '1px solid #582E92',
+                },
+                '&:after': {
+                  borderBottom: '2px solid #582E92',
+                },
+              },
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={handleClickShowPassword}
+                    edge="end"
+                    sx={{ color: '#582E92' }}
+                  >
+                    {showPassworddelete ? <Visibility /> : <VisibilityOff />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose} sx={{ color: '#582E92' }}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} color="error">
+            Delete Account
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (isAuthenticated) {
     return (
@@ -533,7 +539,6 @@ export default function Profile({ params }: { params: { id: string } }) {
       >
         <Box
           sx={{
-            // backgroundColor: '#f5f5f5',
             minHeight: '100vh',
             overflowY: 'auto',
             paddingTop: '3%',
@@ -705,7 +710,6 @@ export default function Profile({ params }: { params: { id: string } }) {
                       '&:hover': {
                         color: '#461B73',
                       },
-                      // Defensive CSS:
                       pointerEvents: 'auto',
                       userSelect: 'text',
                       position: 'relative',
@@ -731,57 +735,108 @@ export default function Profile({ params }: { params: { id: string } }) {
               >
                 <Grid item xs={12}>
                   {mappedProfile
-                    .filter((item) => item.value) // Only include items with truthy values
-                    .map((item) => (
-                      <Box
-                        key={item.label}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: {
-                            xs: 'column',
-                            sm: 'row',
-                          },
-                          justifyContent: 'space-between',
-                          alignItems: {
-                            xs: 'flex-start',
-                            sm: 'center',
-                          },
-                          paddingBottom: '16px',
-                          width: '100%',
-                        }}
-                      >
-                        <Typography
-                          variant="body1"
+                    .filter((item) => item.value)
+                    .map((item) => {
+                      const isExpandable =
+                        (item.label === 'Professional Role' ||
+                          item.label === 'Professional Subrole') &&
+                        item.value.split(',').length > 4;
+
+                      const isExpanded = expandedFields[item.label];
+                      const displayedValue =
+                        isExpandable && !isExpanded
+                          ? item.value.split(',').slice(0, 1).join(',') + '...'
+                          : item.value;
+
+                      return (
+                        <Box
+                          key={item.label}
                           sx={{
-                            fontWeight: 'bold',
-                            color: '#FF9911',
-                            minWidth: {
-                              xs: '100%',
-                              sm: '30%',
+                            display: 'flex',
+                            flexDirection: {
+                              xs: 'column',
+                              sm: 'row',
                             },
-                            marginBottom: {
-                              xs: '4px',
-                              sm: 0,
+                            justifyContent: 'space-between',
+                            alignItems: {
+                              xs: 'flex-start',
+                              sm: 'flex-start',
                             },
+                            paddingBottom: '10px',
+                            marginTop: '8px',
+                            width: '100%',
                           }}
                         >
-                          {item.label}:
-                        </Typography>
-                        <Typography
-                          variant="body1"
-                          sx={{
-                            fontWeight: 'bold',
-                            color: '#333',
-                            width: {
-                              xs: '100%',
-                              sm: '65%',
-                            },
-                          }}
-                        >
-                          {item.value}
-                        </Typography>
-                      </Box>
-                    ))}
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: 'bold',
+                              color: '#FF9911',
+                              marginTop:
+                                item.label === 'Professional Subrole'
+                                  ? '0px'
+                                  : 0,
+                              minWidth: {
+                                xs: '100%',
+                                sm: '30%',
+                              },
+                              marginBottom: {
+                                xs: '4px',
+                                sm: 0,
+                              },
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {item.label}:
+                          </Typography>
+
+                          <Box
+                            sx={{
+                              width: {
+                                xs: '100%',
+                                sm: '65%',
+                              },
+                              display: 'flex',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              flexWrap: 'wrap',
+                              gap: '8px',
+                            }}
+                          >
+                            <Typography
+                              variant="body1"
+                              sx={{
+                                fontWeight: 'bold',
+                                color: '#333',
+                                display: 'inline',
+                              }}
+                            >
+                              {displayedValue}
+                            </Typography>
+
+                            {isExpandable && (
+                              <Button
+                                size="small"
+                                onClick={() =>
+                                  setExpandedFields((prev) => ({
+                                    ...prev,
+                                    [item.label]: !prev[item.label],
+                                  }))
+                                }
+                                sx={{
+                                  textTransform: 'none',
+                                  mt: 0.5,
+                                  display: 'inline-flex',
+                                  color: '#582E92',
+                                }}
+                              >
+                                {isExpanded ? 'Show Less' : 'Show More'}
+                              </Button>
+                            )}
+                          </Box>
+                        </Box>
+                      );
+                    })}
                 </Grid>
               </Grid>
             </Box>
@@ -804,14 +859,14 @@ export default function Profile({ params }: { params: { id: string } }) {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  borderRadius: 'inherit', // Inherit borderRadius for rounded corners
-                  padding: '1px', // Thickness of the border line
+                  borderRadius: 'inherit',
+                  padding: '1px',
                   background:
-                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)', // Gradient effect
+                    'linear-gradient(to right, #FF9911 50%, #582E92 50%)',
                   WebkitMask:
-                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', // Mask to create border-only effect
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                   WebkitMaskComposite: 'xor',
-                  maskComposite: 'exclude', // Ensures only the border is visible
+                  maskComposite: 'exclude',
                 },
               }}
             >
@@ -878,7 +933,7 @@ export default function Profile({ params }: { params: { id: string } }) {
               )}
             </Box>
 
-            {/* <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
               <Button
                 onClick={handleDeleteAccountClick}
                 variant="contained"
@@ -890,23 +945,9 @@ export default function Profile({ params }: { params: { id: string } }) {
               >
                 Delete Account
               </Button>
-            </Box> */}
+            </Box>
           </Box>
         </Box>
-        <OTPDialog
-          open={isOpenOTP}
-          onClose={() => setIsOpenOTP(false)}
-          onSubmit={handleVerifyOTP}
-          onResendOtp={handleProfileOtpResend}
-          type="delete"
-        />
-        {showError && errorMessage && (
-          <Box sx={{ my: 2 }}>
-            <Alert severity="error" onClose={() => setShowError(false)}>
-              {errorMessage}
-            </Alert>
-          </Box>
-        )}
 
         {/* Delete Account Confirmation Dialog */}
         <Dialog
@@ -914,6 +955,12 @@ export default function Profile({ params }: { params: { id: string } }) {
           onClose={() => setOpenDeleteDialog(false)}
         >
           <DialogTitle>Confirm Account Deletion</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete your account? This action cannot
+              be undone.
+            </DialogContentText>
+          </DialogContent>
           <DialogActions>
             <Button
               onClick={() => setOpenDeleteDialog(false)}
@@ -921,17 +968,20 @@ export default function Profile({ params }: { params: { id: string } }) {
             >
               Cancel
             </Button>
-            <Button
-              // onClick={handleUserDeactivation}
-              onClick={handleSendOtp}
-              color="error"
-            >
+            <Button onClick={handleDeleteConfirmation} color="error">
               Delete Account
             </Button>
           </DialogActions>
         </Dialog>
-        {/* Email Input Dialog */}
 
+        {/* Password Confirmation Dialog */}
+        <PasswordConfirmationDialog
+          open={openPasswordDialog}
+          onClose={() => setOpenPasswordDialog(false)}
+          onSubmit={handlePasswordSubmit}
+        />
+
+        {/* Success Dialog */}
         <Dialog
           open={openConfirmDeleteDialog}
           onClose={() => setOpenConfirmDeleteDialog(false)}
@@ -955,10 +1005,10 @@ export default function Profile({ params }: { params: { id: string } }) {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleLogoutCancel} color="primary">
+            <Button onClick={handleLogoutCancel} sx={{ color: '#582E92' }}>
               No
             </Button>
-            <Button onClick={handleLogoutConfirm} color="secondary">
+            <Button onClick={handleLogoutConfirm} color="error">
               Yes, Logout
             </Button>
           </DialogActions>
@@ -1031,7 +1081,7 @@ export default function Profile({ params }: { params: { id: string } }) {
                           onClick={() => setShowOldPassword(!showOldPassword)}
                           edge="end"
                         >
-                          {showOldPassword ? <VisibilityOff /> : <Visibility />}
+                          {showOldPassword ? <Visibility /> : <VisibilityOff />}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -1056,7 +1106,7 @@ export default function Profile({ params }: { params: { id: string } }) {
                           onClick={() => setShowNewPassword(!showNewPassword)}
                           edge="end"
                         >
-                          {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                          {showNewPassword ? <Visibility /> : <VisibilityOff />}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -1084,9 +1134,9 @@ export default function Profile({ params }: { params: { id: string } }) {
                           edge="end"
                         >
                           {showConfirmPassword ? (
-                            <VisibilityOff />
-                          ) : (
                             <Visibility />
+                          ) : (
+                            <VisibilityOff />
                           )}
                         </IconButton>
                       </InputAdornment>
@@ -1136,6 +1186,26 @@ export default function Profile({ params }: { params: { id: string } }) {
             </Grid>
           </Box>
         </Dialog>
+
+        <Dialog open={showSuccessDialog} onClose={() => {}}>
+          <DialogTitle>Password Reset</DialogTitle>
+          <DialogContent>
+            Your password has been reset successfully.
+          </DialogContent>
+          <DialogActions>
+            <Button
+              color="#6750A4"
+              onClick={() => {
+                setShowSuccessDialog(false);
+                localStorage.clear();
+                router.push('/');
+              }}
+            >
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         <Snackbar
           open={showError}
           autoHideDuration={severity === 'success' ? 1000 : 6000}

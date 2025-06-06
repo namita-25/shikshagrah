@@ -13,10 +13,12 @@ import {
   Grid,
   InputAdornment,
   ButtonBase,
+  Snackbar
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   authenticateLoginUser,
   fetchTenantData,
@@ -31,7 +33,9 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [readOnly, setReadOnly] = useState(true);
+  const queryRouter = useSearchParams();
   const router = useRouter();
+  const unAuth = queryRouter.get('unAuth');
   const basePath = AppConst?.BASEPATH;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const passwordRegex =
@@ -142,6 +146,10 @@ export default function Login() {
   const handlePasswordClick = () => {
     router.push('/forgetpassword');
   };
+
+  const remoteUnAuthToaster = () => {
+    router.push('/');
+  }
   return (
     <Box
       sx={{
@@ -240,7 +248,7 @@ export default function Login() {
           </Box>
           <TextField
             fullWidth
-            label="Username"
+            label="Email / Mobile / Username"
             value={formData.userName}
             onChange={handleChange('userName')}
             error={error.userName}
@@ -362,6 +370,22 @@ export default function Login() {
                   ? JSON.stringify(errorMessage)
                   : errorMessage}
               </Alert>
+            )}
+            {unAuth && (
+              <Snackbar
+                open={true}
+                autoHideDuration={4000}
+                onClose={() => setShowError(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+              >
+                <Alert
+                  severity="error"
+                  onClose={() => remoteUnAuthToaster(false)}
+                  sx={{ mt: 2 }}
+                >
+                  Your session has expired, Please login again.
+                </Alert>
+              </Snackbar>
             )}
           </Grid>
         </form>

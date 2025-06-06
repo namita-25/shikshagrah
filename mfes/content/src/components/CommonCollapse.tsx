@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useRouter } from 'next/router'; // Use Next.js router for navigation
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import PlayCircleOutlineOutlinedIcon from '@mui/icons-material/PlayCircleOutlineOutlined';
 import TextSnippetOutlinedIcon from '@mui/icons-material/TextSnippetOutlined';
 import LensOutlinedIcon from '@mui/icons-material/LensOutlined';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
-import { CircularProgressWithLabel, Progress } from '@shared-lib';
+import { CircularProgressWithLabel } from '@shared-lib';
 import { useTheme } from '@mui/material/styles';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
+
 // Types for nested data structure and actions
 interface NestedItem {
   identifier: string;
   name: string;
   mimeType: string;
+  artifactUrl?: string; // <-- Added artifactUrl here
   children?: NestedItem[];
 }
 
@@ -50,6 +51,16 @@ const RenderNestedData: React.FC<{
   toggleExpanded: (identifier: string) => void;
 }> = ({ data, expandedItems, toggleExpanded, progressNumber }) => {
   const router = useRouter();
+
+ const handleCopyClick = (e: React.MouseEvent, artifactUrl?: string) => {
+   e.stopPropagation(); // prevent accordion toggle
+   if (artifactUrl) {
+     navigator.clipboard.writeText(artifactUrl).catch(() => {
+       // silently fail, no alert
+     });
+   }
+ };
+
 
   return (
     <>
@@ -123,12 +134,6 @@ const RenderNestedData: React.FC<{
                 {progressNumber !== undefined && (
                   <Box
                     sx={{
-                      // display: 'flex',
-                      // alignItems: 'center',
-                      // gap: '12px',
-                      // marginLeft: '100%',
-                      // position: 'relative',
-                      // bottom: '32px',
                       minWidth: '40px',
                     }}
                   >
@@ -147,6 +152,16 @@ const RenderNestedData: React.FC<{
                   </Box>
                 )}
               </Box>
+
+              {/* Copy Icon Button */}
+              <Tooltip title="Copy artifact URL">
+                <IconButton
+                  onClick={(e) => handleCopyClick(e, item.artifactUrl)}
+                  size="small"
+                >
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
 
             {isExpanded && item.children?.length && (
@@ -217,7 +232,6 @@ export const CommonCollapse: React.FC<CommonAccordionProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '2px',
-                // marginLeft: 'auto',
                 position: 'relative',
               }}
             >
@@ -253,7 +267,6 @@ export const CommonCollapse: React.FC<CommonAccordionProps> = ({
         <Box
           sx={{
             display: 'flex',
-            // justifyContent: 'space-between',
             alignItems: 'center',
           }}
           onClick={() => handleItemClick(identifier)}

@@ -489,13 +489,13 @@ export default function Content() {
           width: '100%',
         },
       }}
-      showFilter={true}
+      // showFilter={true}
       // filter={filter}
-      frameworkFilter={frameworkFilter}
+      // frameworkFilter={frameworkFilter}
       onItemClick={handleItemClick}
       //@ts-ignore
       onApply={handleApplyFilters}
-      filterValues={filterValues}
+      // filterValues={filterValues}
     >
       <Box
         sx={{

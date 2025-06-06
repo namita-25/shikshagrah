@@ -7,11 +7,11 @@ import CardActions from '@mui/material/CardActions';
 import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
 import { red } from '@mui/material/colors';
-import { Box, useTheme } from '@mui/material';
+import { Box, IconButton, Tooltip, useTheme } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import { CircularProgressWithLabel } from '../Progress/CircularProgressWithLabel';
-
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 interface ContentItem {
   name: string;
   gradeLevel: string[];
@@ -25,6 +25,8 @@ interface ContentItem {
   posterImage: string;
   children: [{}];
   leafNodes?: [{}];
+  link: string;
+  downloadUrl?: string;
 }
 
 interface TrackDataItem {
@@ -115,8 +117,9 @@ export const ContentCard: React.FC<CommonCardProps> = ({
                 ? 'Enrolled, not started'
                 : 'Not Started',
           };
-
+          console.log('newObj', type);
           if (type === 'Course') {
+            console.log('item', item);
             const leafNodes = getLeafNodes(item?.[0] ?? {});
             const completedCount = result?.completed_list?.length ?? 0;
             const percentage =
@@ -182,7 +185,12 @@ export const ContentCard: React.FC<CommonCardProps> = ({
             '@media (max-width: 600px)': {
               height: '140px',
             },
+            cursor: onClick ? 'pointer' : 'default',
             ..._card?._cardMedia?.sx,
+          }}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent any bubbling
+            onClick?.(); // Trigger redirect only on image click
           }}
         />
 
@@ -217,23 +225,43 @@ export const ContentCard: React.FC<CommonCardProps> = ({
             )
           }
           title={
-            <Typography
-              title={title}
-              sx={{
-                fontWeight: 500,
-                fontSize: '16px',
-                lineHeight: '24px',
-                whiteSpace: 'wrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitBoxOrient: 'vertical',
-                WebkitLineClamp: 2,
-                ..._card?._titleText?.sx,
-              }}
-            >
-              {title}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                title={title}
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  lineHeight: '24px',
+                  whiteSpace: 'wrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 2,
+                  flex: 1, // allow title to take remaining space
+                  ..._card?._titleText?.sx,
+                }}
+              >
+                {title}
+              </Typography>
+              <Tooltip title="Copy link">
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering card onClick
+                    const urlToCopy =
+                      type === 'Learning Resource'
+                        ? item?.[0]?.artifactUrl
+                        : type === 'Course'
+                        ? item?.[0]?.downloadUrl
+                        : '';
+                    navigator.clipboard.writeText(urlToCopy || '');
+                  }}
+                  size="small"
+                >
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
           }
           subheader={
             subheader && (

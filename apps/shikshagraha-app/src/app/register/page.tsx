@@ -4,13 +4,21 @@ import { generateRJSFSchema } from '../../utils/generateSchemaFromAPI';
 import DynamicForm from '../../Components/DynamicForm';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-import { Box, Button, Grid, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Grid,
+  Typography,
+  createTheme,
+  ThemeProvider,
+} from '@mui/material';
 import {
   fetchRoleData,
   getSubroles,
   schemaRead,
 } from '../../services/LoginService';
 import { useRouter } from 'next/navigation';
+
 export default function Register() {
   const [formSchema, setFormSchema] = useState<any>();
   const [uiSchema, setUiSchema] = useState<any>();
@@ -58,12 +66,7 @@ export default function Register() {
         }
 
         const { schema, uiSchema, fieldNameToFieldIdMapping } =
-          generateRJSFSchema(
-            fields, // Now guaranteed to be an array
-            selectedRoleObj,
-            rolesData,
-            subrolesData
-          );
+          generateRJSFSchema(fields, selectedRoleObj, rolesData, subrolesData);
 
         setFormSchema(schema);
         setUiSchema(uiSchema);
@@ -82,46 +85,7 @@ export default function Register() {
   const handleSubmit = ({ formData }: any) => {
     setFormData(formData);
   };
-  // const handleRoleChange = async (selectedRole: string) => {
-  //   try {
-  //     setLoading(true);
 
-  //     // Fetch subroles for the selected role
-  //     let subrolesData = [];
-  //     const selectedRoleObj = rolesList.find(
-  //       (role) => role.externalId === selectedRole
-  //     );
-
-  //     if (selectedRoleObj) {
-  //       const subrolesResponse = await getSubroles(selectedRoleObj._id);
-  //       subrolesData = subrolesResponse.result || [];
-  //       console.log('subrolesData', selectedRoleObj._id);
-  //       setSubRoles(subrolesData);
-  //     }
-
-  //     // Regenerate schema with new role and subroles
-  //     const response = await schemaRead();
-  //     const fields = response?.result?.data?.fields?.result || [];
-
-  //     const { schema, uiSchema, fieldNameToFieldIdMapping } =
-  //       generateRJSFSchema(fields, selectedRole, rolesList, subrolesData);
-
-  //     setFormSchema(schema);
-  //     setUiSchema(uiSchema);
-  //     setFieldNameToFieldIdMapping(fieldNameToFieldIdMapping);
-
-  //     // Reset Sub-Role when role changes
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       Role: selectedRole,
-  //       'Sub-Role': '',
-  //     }));
-  //   } catch (error) {
-  //     console.error('Error handling role change:', error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const handleBack = () => {
     router.push('/');
   };
@@ -196,72 +160,86 @@ export default function Register() {
     </Box>
   );
 
+  const theme = createTheme({
+    components: {
+      MuiInputBase: {
+        styleOverrides: {
+          input: {
+            fontSize: '16px',
+          },
+        },
+      },
+    },
+  });
+
   if (!isAuthenticated) {
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          bgcolor: '#f5f5f5',
-          paddingBottom: '60px',
-        }}
-      >
-        <StaticHeader />
+      <ThemeProvider theme={theme}>
         <Box
           sx={{
-            mx: 'auto',
-            width: '100%',
-            maxWidth: {
-              xs: '90%',
-              sm: 500,
-              md: 600,
-            },
-            mt: {
-              xs: 2,
-              sm: 4,
-            },
-            px: {
-              xs: 2,
-              sm: 3,
-            },
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: '#f5f5f5',
+            paddingBottom: '60px',
           }}
         >
-          <Typography
-            variant="h5"
+          <StaticHeader />
+          <Box
             sx={{
-              color: '#572E91',
-              fontWeight: 'bold',
-              mb: 2,
-              textAlign: 'center',
-              fontSize: {
-                xs: '1.2rem',
-                sm: '1.5rem',
+              mx: 'auto',
+              width: '100%',
+              maxWidth: {
+                xs: '90%',
+                sm: 500,
+                md: 600,
+              },
+              mt: {
+                xs: 2,
+                sm: 4,
+              },
+              px: {
+                xs: 2,
+                sm: 3,
               },
             }}
           >
-            Welcome to Shikshagraha
-          </Typography>
-
-          {formSchema && (
-            <DynamicForm
-              schema={formSchema}
-              uiSchema={uiSchema}
-              SubmitaFunction={handleSubmit}
-              hideSubmit={false}
-              onChange={({ formData }) => {
-                if (formData.Role) {
-                  setFormData((prev) => ({ ...prev, 'Sub-Role': [] }));
-                }
+            <Typography
+              variant="h5"
+              sx={{
+                color: '#572E91',
+                fontWeight: 'bold',
+                mb: 2,
+                textAlign: 'center',
+                fontSize: {
+                  xs: '1.2rem',
+                  sm: '1.5rem',
+                },
               }}
-              fieldIdMapping={fieldNameToFieldIdMapping}
-            />
-          )}
+            >
+              Welcome to Shikshagraha
+            </Typography>
+
+            {formSchema && (
+              <DynamicForm
+                schema={formSchema}
+                uiSchema={uiSchema}
+                SubmitaFunction={handleSubmit}
+                hideSubmit={false}
+                onChange={({ formData }) => {
+                  if (formData.Role) {
+                    setFormData((prev) => ({ ...prev, 'Sub-Role': [] }));
+                  }
+                }}
+                fieldIdMapping={fieldNameToFieldIdMapping}
+              />
+            )}
+          </Box>
         </Box>
-      </Box>
+      </ThemeProvider>
     );
   } else {
-    const redirectUrl = '/home';
+    const redirectUrl = '/';
     router.push(redirectUrl);
   }
 }

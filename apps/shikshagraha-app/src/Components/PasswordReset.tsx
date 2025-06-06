@@ -68,23 +68,62 @@ const PasswordReset = ({ name }: { name: string }) => {
     ? Math.max(0, 30 - Math.floor((Date.now() - lastResendTime) / 1000))
     : 0;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    console.log(name, value);
+
+const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+
+  // When typing into identifier field
+  if (name === 'identifier') {
+    let newValue = value;
+
+    // If input starts with 6-9, treat as mobile
+    const isPotentialMobile = /^[6-9]/.test(newValue);
+
+    if (isPotentialMobile) {
+      // Remove non-digit characters
+      newValue = newValue.replace(/\D/g, '');
+
+      // Limit to 10 digits
+      if (newValue.length > 10) {
+        newValue = newValue.slice(0, 10);
+      }
+
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: newValue.length === 10 ? '' : 'Mobile number must be 10 digits',
+      }));
+    } else if (newValue.includes('@')) {
+      // Email validation
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: emailRegex.test(newValue)
+          ? ''
+          : 'Please enter a valid email address',
+      }));
+    } else {
+      // Reset identifier error if not matching either mobile or email
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: '',
+      }));
+    }
+
+    // Update identifier state
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: newValue,
     }));
-    let error = '';
-    setFormErrors((prev) => ({
-      ...prev,
-      [name]: error,
-    }));
-  };
-  // const getAuthPayload = () =>
-  //   formData.email
-  //     ? { email: formData.email, reason: 'forgot' }
-  //     : { mobile: formData.mobile, reason: 'forgot' };
+    return;
+  }
+
+  // For other fields
+  setFormData((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
+
+
 
   const handleSendOtp = async () => {
     if (!formData?.identifier || !formData?.password) {
@@ -111,7 +150,7 @@ const PasswordReset = ({ name }: { name: string }) => {
         setStep('otp');
         setSecondsLeft(605);
       } else {
-        setError(response?.params?.errmsg || 'Failed to send OTP');
+        setError(response?.message || 'Failed to send OTP');
         setShowError(true);
       }
     } catch (err) {
@@ -178,13 +217,13 @@ const PasswordReset = ({ name }: { name: string }) => {
       console.log(payload, 'verify otp');
       const response = await verifyOtpService(payload);
 
-       if (response?.responseCode === 'OK') {
-         setShowSuccess(true);
+      if (response?.responseCode === 'OK') {
+        setShowSuccess(true);
         //  setTimeout(() => router.push('/'));
-       } else {
-         setError(response?.message || 'Invalid OTP');
-         setShowError(true);
-       }
+      } else {
+        setError(response?.message || 'Invalid OTP');
+        setShowError(true);
+      }
     } catch (err) {
       setError('Failed to verify OTP. Please try again.');
       setShowError(true);
@@ -234,7 +273,7 @@ const PasswordReset = ({ name }: { name: string }) => {
     if (step === 'otp') {
       setStep('reset');
     } else if (step === 'reset') {
-       router.push('/');
+      router.push('/');
     }
   };
   const validatePassword = (val: string, name: string) => {
@@ -258,25 +297,54 @@ const PasswordReset = ({ name }: { name: string }) => {
 
     let errorMsg: string | null | undefined;
 
+    // Update the value in formData first (so we can validate against the latest state)
+    const updatedFormData = {
+      ...formData,
+      [name]: val,
+    };
+    setFormData(updatedFormData);
+
     if (name === 'password') {
       errorMsg = validatePassword(val, name);
-      setFormErrors((prev) => ({
-        ...prev,
-        [name]: errorMsg ?? '',
-      }));
     } else if (name === 'confirmPassword') {
       errorMsg = validatePassword(val, name);
-      setFormErrors((prev) => ({
-        ...prev,
-        [name]: errorMsg ?? '',
-      }));
     }
 
-    // Always assign string to form data
-    setFormData((prev) => ({
-      ...prev,
-      [name]: val,
-    }));
+    const updatedErrors = {
+      ...formErrors,
+      [name]: errorMsg ?? '',
+    };
+
+    // ✅ Validate confirmPassword when password changes
+    if (
+      name === 'password' &&
+      updatedFormData.confirmPassword &&
+      val !== updatedFormData.confirmPassword
+    ) {
+      updatedErrors.confirmPassword =
+        'Password and confirm password must be the same.';
+    }
+
+    // ✅ Validate confirmPassword when confirmPassword changes
+    if (
+      name === 'confirmPassword' &&
+      updatedFormData.password &&
+      val !== updatedFormData.password
+    ) {
+      updatedErrors.confirmPassword =
+        'Password and confirm password must be the same.';
+    }
+
+    // ✅ Clear error if they now match
+    if (
+      updatedFormData.password &&
+      updatedFormData.confirmPassword &&
+      updatedFormData.password === updatedFormData.confirmPassword
+    ) {
+      updatedErrors.confirmPassword = '';
+    }
+
+    setFormErrors(updatedErrors);
   };
 
   const handleChange = (index: number, value: string) => {
@@ -313,6 +381,14 @@ const PasswordReset = ({ name }: { name: string }) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       const prevInput = document.getElementById(`otp-${index - 1}`);
       prevInput?.focus();
+    }
+  };
+  const handlePaste = (e: any) => {
+    const pasteData = e.clipboardData.getData('text');
+    if (/^\d{6}$/.test(pasteData)) {
+      const digits = pasteData.split('');
+      setOtp(digits); // assuming `otp` is a state array of length 6
+      e.preventDefault();
     }
   };
   return (
@@ -402,6 +478,7 @@ const PasswordReset = ({ name }: { name: string }) => {
                     value={digit}
                     onChange={(e) => handleChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, index)}
+                    onPaste={handlePaste}
                     inputProps={{
                       maxLength: 1,
                       sx: {
@@ -487,15 +564,23 @@ const PasswordReset = ({ name }: { name: string }) => {
               value={formData.identifier}
               onChange={handleInputChange}
               margin="normal"
+              error={!!formErrors.identifier}
               helperText={formErrors.identifier}
               FormHelperTextProps={{
                 sx: {
-                  color: 'red', // ✅ helperText color set manually
+                  color: 'red',
                   fontSize: '11px',
                   marginLeft: '0px',
                 },
               }}
               InputProps={{
+                inputProps: /^[6-9]/.test(formData.identifier)
+                  ? {
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*',
+                      maxLength: 10,
+                    }
+                  : undefined,
                 sx: {
                   '& .MuiInputBase-input': {
                     padding: '14px',
@@ -505,14 +590,14 @@ const PasswordReset = ({ name }: { name: string }) => {
               }}
               InputLabelProps={{
                 sx: {
-                  fontSize: '12px', // Label font size
+                  fontSize: '12px',
                   '&.Mui-focused': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink the label when focused
-                    color: '#582E92', // Optional: change label color on focus
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    color: '#582E92',
                   },
                   '&.MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)', // Shrink when filled or focused
-                    color: '#582E92', // Optional: change label color when filled
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    color: '#582E92',
                   },
                 },
               }}

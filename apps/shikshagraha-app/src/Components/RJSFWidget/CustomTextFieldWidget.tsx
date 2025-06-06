@@ -34,16 +34,14 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   const isMobileField =
     label?.toLowerCase() === 'mobile' ||
     label?.toLowerCase() === 'contact number';
-
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+`\-={}:":;'<>?,./\\]).{8,}$/;
   const nameRegex = /^[a-zA-Z]+$/;
   const contactRegex = /^[6-9]\d{9}$/;
   const udiseRegex = /^\d{11}$/;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const usernameRegex = /^[a-zA-Z0-9_@.]+$/; //add
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const usernameRegex = /^[a-zA-Z0-9@._-]{3,30}$/; //add
   const lowerLabel = label?.toLowerCase();
-
   const isOptional = () => {
     if (isEmailField && formData.mobile) return true;
     if (isMobileField && formData.email) return true;
@@ -56,21 +54,35 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   };
   const validateField = (field: string, val: string): string | null => {
     if (isOptional() && !val) return null;
+    console.log('field', field);
     switch (field.toLowerCase()) {
       case 'first name':
-      case 'last name':
         if (!nameRegex.test(val)) return 'Only letters are allowed.';
         break;
       case 'username':
         if (!usernameRegex.test(val))
-          return 'Username can contain only letters and underscores.';
+          return 'Username can contain only letters, numbers, hyphens, and underscores, and must be 3 to 30 characters long.';
         break;
       case 'contact number':
-        if (!contactRegex.test(val))
-          return 'Enter a valid 10-digit mobile number.';
+        if (val && !contactRegex.test(val)) {
+          return 'Enter a valid 10-digit mobile number';
+        }
+        // Don't require if email is provided
+        if (!val && !formData.email) {
+          return 'Either contact number or email is required';
+        }
+        return null;
+        break;
         break;
       case 'email':
-        if (!emailRegex.test(val)) return 'Enter a valid email address.';
+        if (val && !emailRegex.test(val)) {
+          return 'Enter a valid email address';
+        }
+        // Don't require if mobile is provided
+        if (!val && !formData.mobile) {
+          return 'Either email or contact number is required';
+        }
+        return null;
         break;
       case 'password':
         if (!passwordRegex.test(val))
@@ -83,16 +95,19 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     }
     return null;
   };
+  useEffect(() => {
+    if (isConfirmPasswordField && value) {
+      const error = validateField(label ?? '', value);
+      setLocalError(error);
+    }
+  }, [formData.password]);
   const shouldShowHelperText = () => {
     // Always show for non-email/mobile fields
     if (!isEmailField && !isMobileField) return true;
-
     // For email field - only show if mobile isn't entered
-    if (isEmailField) return !formData.mobile;
-
+    if (isEmailField) return !formData.mobile || (value && localError);
     // For mobile field - only show if email isn't entered
-    if (isMobileField) return !formData.email;
-
+    if (isMobileField) return !formData.email || (value && localError);
     return true;
   };
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,10 +117,22 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
       const numericValue = val.replace(/\D/g, '');
       // Limit to 10 digits
       const limitedValue = numericValue.slice(0, 10);
-
       const error = validateField(label ?? '', limitedValue);
       setLocalError(error);
       onChange(limitedValue === '' ? undefined : limitedValue);
+      if (limitedValue && formData.email) {
+        props.onClearError?.('email');
+      }
+      return;
+    }
+    if (isEmailField) {
+      const error = validateField(label ?? '', val);
+      setLocalError(error);
+      onChange(val === '' ? undefined : val);
+      // Clear mobile error when email is entered
+      if (val && formData.mobile) {
+        props.onClearError?.('mobile');
+      }
       return;
     }
     const error = validateField(label ?? '', val);
@@ -120,18 +147,15 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     //   }
     // }
     onChange(val === '' ? undefined : val);
-    // if (onErrorChange) {
-    //   onErrorChange(!!error);
-    // }
+    if (props.onErrorChange) {
+      props.onErrorChange(!!error);
+    }
   };
-
   const handleBlur = () => {
     if (onBlur) onBlur(id, value);
   };
-
   const handleFocus = (event: React.FocusEvent<HTMLInputElement>) =>
     onFocus(id, event.target.value);
-
   // Filter out 'is a required property' messages
   const displayErrors = rawErrors.filter(
     (error) => !error.toLowerCase().includes('required')
@@ -141,13 +165,9 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
   };
   const renderLabel = () => {
     if (
-      [
-        'first name',
-        'last name',
-        'username',
-        'password',
-        'confirm password',
-      ].includes(lowerLabel ?? '')
+      ['first name', 'username', 'password', 'confirm password'].includes(
+        lowerLabel ?? ''
+      )
     ) {
       return (
         <>
@@ -155,7 +175,6 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         </>
       );
     }
-
     if (isEmailField || isMobileField) {
       return (
         <>
@@ -180,7 +199,6 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
     }
     return label;
   };
-
   return (
     <>
       {/* Hidden fields to prevent autofill */}
@@ -194,7 +212,6 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         name="prevent_autofill_password"
         style={{ display: 'none' }}
       />
-
       <TextField
         fullWidth
         id={id}
@@ -289,11 +306,14 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
               marginLeft: '12px',
             }}
           >
-            Enter either Email or Contact number
+            {isEmailField
+              ? 'Enter email'
+              : isMobileField
+              ? 'Enter contact number'
+              : 'Enter either Email or Contact number'}
           </Typography>
         )}
     </>
   );
 };
-
 export default CustomTextFieldWidget;

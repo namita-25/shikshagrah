@@ -14,6 +14,9 @@ const withPWA = require('next-pwa')({
 });
 
 const nextConfig = {
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

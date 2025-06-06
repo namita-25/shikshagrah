@@ -84,7 +84,7 @@ export const readHomeListForm = async (token: string) => {
     if (err.status == 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
-      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE + "?unAuth=true" || '';
     }
     if (axios.isAxiosError(err)) {
       console.error(
@@ -114,7 +114,7 @@ export const authenticateUser = async ({
     if (response.status == 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
-      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE + "?unAuth=true" || '';
     }
 
     return response?.data;
@@ -122,7 +122,7 @@ export const authenticateUser = async ({
     if (error.status == 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
-      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE + "?unAuth=true" || '';
     }
     console.error('error in login', error);
     // throw error;
@@ -147,7 +147,7 @@ export const fetchTenantData = async ({
     if (response.status == 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
-      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE + "?unAuth=true" || '';
     }
 
     return response?.data;
@@ -155,7 +155,7 @@ export const fetchTenantData = async ({
     if (error.status == 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
-      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE + "?unAuth=true" || '';
     }
     console.error('Error fetching tenant data:', error);
     return error;
@@ -213,7 +213,7 @@ export const schemaRead = async (): Promise<any> => {
     if (response.status === 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
-      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE + "?unAuth=true" || '';
     }
 
     return response?.data;
@@ -221,7 +221,7 @@ export const schemaRead = async (): Promise<any> => {
     if (error?.response?.status === 401) {
       localStorage.removeItem('accToken');
       localStorage.clear();
-      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE || '';
+      window.location.href = process.env.NEXT_PUBLIC_LOGINPAGE + "?unAuth=true" || '';
     }
     console.error('error in schemaRead', error);
     return error;

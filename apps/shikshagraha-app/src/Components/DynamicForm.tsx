@@ -91,7 +91,7 @@ const DynamicForm = ({
   const [alertSeverity, setAlertSeverity] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const [isUsernameValid, setIsUsernameValid] = useState(false);
-
+  const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -882,6 +882,14 @@ const DynamicForm = ({
 
   const handleChange = useCallback(
     async ({ formData, errors }: { formData: any; errors: any }) => {
+      const newErrors: Record<string, string[]> = {};
+      Object.keys(errors).forEach((key) => {
+        if (errors[key].__errors && errors[key].__errors.length > 0) {
+          newErrors[key] = errors[key].__errors;
+        }
+      });
+      setFormErrors(newErrors);
+
       const prevRole = prevFormData.current?.Role;
       const currentRole = formData?.Role;
       console.log('currentRole', currentRole);
@@ -956,7 +964,7 @@ const DynamicForm = ({
       } else {
         setShowEmailMobileError('');
       }
-
+      setFormData(newFormData);
       // Call the onChange prop if it exists
       if (onChange) {
         onChange({ formData: newFormData, errors });
@@ -1206,11 +1214,28 @@ const DynamicForm = ({
           }}
         />
       ),
+      CustomTextFieldWidget: (props) => (
+        <CustomTextFieldWidget
+          {...props}
+          onErrorChange={(hasError) => {
+            handleFieldError(props.id, hasError);
+          }}
+          onClearError={(fieldName) => {
+            // Clear error for the other field when one is filled
+            setFieldErrors((prev) => ({ ...prev, [fieldName]: false }));
+            setFormErrors((prev) => {
+              const newErrors = { ...prev };
+              delete newErrors[fieldName];
+              return newErrors;
+            });
+          }}
+        />
+      ),
       CustomCheckboxWidget,
       CustomDateWidget,
       SearchTextFieldWidget,
       CustomRadioWidget,
-      CustomTextFieldWidget,
+      // CustomTextFieldWidget,
       UdiaseWithButton: (props) => (
         <MemoizedUdiaseWithButton {...props} onFetchData={handleFetchData} />
       ),
@@ -1473,6 +1498,23 @@ const DynamicForm = ({
     // router.push('/');
     // localStorage.clear();
   };
+  const hasValidationErrors = () => {
+    const hasFieldErrors = Object.values(fieldErrors).some(Boolean);
+    const hasFormErrors = Object.keys(formErrors).length > 0;
+
+    // Check if we have at least one valid contact method
+    const hasValidContact =
+      (formData.email && isValidEmail(formData.email)) ||
+      (formData.mobile && isValidMobile(formData.mobile));
+
+    return (
+      hasFieldErrors ||
+      hasFormErrors ||
+      !hasValidContact ||
+      (!isUsernameValid && formData.Username)
+    );
+  };
+  console.log('form', formData, validator);
   return (
     <>
       {errorMessage && showError && (
@@ -1520,14 +1562,19 @@ const DynamicForm = ({
               // onClick={handleRegister}
               disabled={
                 !formData?.firstName ||
-                !formData?.lastName ||
                 !formData?.password ||
                 (!formData?.email && !formData?.mobile) ||
                 !formData?.confirm_password ||
                 !formData.Role ||
                 !formData?.udise ||
+                !formData?.Udise ||
                 !isUsernameValid ||
-                (formData.Role !== 'parents' && formData.Role !== 'others' && (!formData?.['Sub-Role'] || formData['Sub-Role'].length === 0))
+                hasValidationErrors() ||
+                (formData.Role !== 'parents' &&
+                  formData.Role !== 'others' &&
+                  formData.Role !== 'youth' &&
+                  (!formData?.['Sub-Role'] ||
+                    formData['Sub-Role'].length === 0))
                 // !formData?.school ||
                 // !formData?.state
               }
