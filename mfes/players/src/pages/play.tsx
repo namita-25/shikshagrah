@@ -20,7 +20,7 @@ const SunbirdPlayers = dynamic(() => import('../components/players/Players'), {
 });
 
 interface SunbirdPlayerProps {
-  identifier?: string; // Allow identifier as a prop
+  identifier: string; // Allow identifier as a prop
   playerConfig?: PlayerConfig; // Optional playerConfig prop
 }
 
@@ -28,9 +28,9 @@ const Players: React.FC<SunbirdPlayerProps> = ({
   identifier: propIdentifier,
   playerConfig: propPlayerConfig,
 }) => {
-  const router = useRouter();
-  const queryIdentifier = router.query.identifier as string; // Get identifier from the query
-  const identifier = propIdentifier || queryIdentifier; // Prefer prop over query
+  // const router = useRouter();
+  // const queryIdentifier = router.query.identifier as string; // Get identifier from the query
+  const identifier = propIdentifier; // Prefer prop over query
   const [playerConfig, setPlayerConfig] = useState<PlayerConfig | undefined>(
     propPlayerConfig
   );

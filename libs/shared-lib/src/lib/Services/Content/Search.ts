@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 import axios, { AxiosRequestConfig } from 'axios';
-interface ContentSearchResponse {
+export interface ContentSearchResponse {
   ownershipType?: string[];
   publish_type?: string;
   copyright?: string;

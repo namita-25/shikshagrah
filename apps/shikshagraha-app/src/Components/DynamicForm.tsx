@@ -92,6 +92,8 @@ const DynamicForm = ({
   const [usernameError, setUsernameError] = useState('');
   const [isUsernameValid, setIsUsernameValid] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
+  const [passwordsMatch, setPasswordsMatch] = useState(false);
+
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -889,7 +891,11 @@ const DynamicForm = ({
         }
       });
       setFormErrors(newErrors);
-
+      const match =
+        formData.password &&
+        formData.confirm_password &&
+        formData.password === formData.confirm_password;
+      setPasswordsMatch(match);
       const prevRole = prevFormData.current?.Role;
       const currentRole = formData?.Role;
       console.log('currentRole', currentRole);
@@ -1511,7 +1517,8 @@ const DynamicForm = ({
       hasFieldErrors ||
       hasFormErrors ||
       !hasValidContact ||
-      (!isUsernameValid && formData.Username)
+      (!isUsernameValid && formData.Username) ||
+      !passwordsMatch
     );
   };
   console.log('form', formData, validator);
@@ -1574,7 +1581,8 @@ const DynamicForm = ({
                   formData.Role !== 'others' &&
                   formData.Role !== 'youth' &&
                   (!formData?.['Sub-Role'] ||
-                    formData['Sub-Role'].length === 0))
+                    formData['Sub-Role'].length === 0)) ||
+                formData.password !== formData.confirm_password
                 // !formData?.school ||
                 // !formData?.state
               }
