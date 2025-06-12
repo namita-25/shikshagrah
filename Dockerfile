@@ -14,7 +14,7 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Build applications
-RUN npx nx run-many --target=build --projects=shikshagraha-app,registration,content
+RUN npx nx run-many --target=build --projects=shikshagraha-app,registration,content,players
 
 # Install PM2 to manage multiple apps
 RUN npm install -g pm2
