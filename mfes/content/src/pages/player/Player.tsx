@@ -6,7 +6,12 @@ interface PlayerPageProps {
 }
 const PlayerPage: React.FC<PlayerPageProps> = ({ id }) => {
   const params = useParams();
-  const { identifier, courseId, unitId } = params; // string | string[] | undefined
+  // const { identifier, courseId, unitId } = params; // string | string[] | undefined
+
+  const identifier = params?.identifier ?? null;
+const courseId =params?.courseId ?? null
+const unitId = params?.unitId ?? null
+
   if (!identifier) {
     return <div>Loading...</div>;
   }
