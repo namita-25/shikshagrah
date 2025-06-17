@@ -867,9 +867,15 @@ const DynamicForm = ({
           setShowError(true);
           setAlertSeverity('error');
           setIsUsernameValid(false);
+          setTimeout(() => {
+            setShowError(false);
+          }, 8000);
         } else {
           setErrorMessage('');
           setShowError(true);
+          setTimeout(() => {
+            setShowError(false);
+          }, 8000);
           setIsUsernameValid(true);
         }
       } catch (error) {
@@ -1324,15 +1330,20 @@ const DynamicForm = ({
     } else {
       if (registrationResponse?.message === 'INVALID_ORG_registration_code') {
         setShowError(true);
+
         setAlertSeverity('error');
         setErrorMessage('Invalid Organisation');
+        setTimeout(() => {
+          setShowError(false);
+        }, 8000);
       } else {
         setShowError(true);
         setAlertSeverity('error');
         setErrorMessage(registrationResponse.message);
+        setTimeout(() => {
+          setShowError(false);
+        }, 8000);
       }
-     
-      
     }
   };
   const handleRegister = async (otp) => {
@@ -1424,6 +1435,9 @@ const DynamicForm = ({
       setAlertSeverity('error');
       console.log('registrationResponse', registrationResponse);
       setErrorMessage(registrationResponse.data.message);
+      setTimeout(() => {
+        setShowError(false);
+      }, 8000);
     }
   };
 
@@ -1448,6 +1462,9 @@ const DynamicForm = ({
         if (tenantResponse?.result?.status === 'archived') {
           setShowError(true);
           setErrorMessage('The user is decativated please contact admin');
+          setTimeout(() => {
+            setShowError(false);
+          }, 8000);
           return;
         } else {
           if (tenantResponse?.result?.tenantData?.[0]?.tenantId) {
@@ -1488,6 +1505,9 @@ const DynamicForm = ({
                 setErrorMessage(
                   'The user does not belong to the same organization.'
                 );
+                setTimeout(() => {
+                  setShowError(false);
+                }, 8000);
               }
             }
           }
@@ -1497,10 +1517,16 @@ const DynamicForm = ({
       } else {
         setShowError(true);
         setErrorMessage('Login failed. Invalid Username or Password.');
+        setTimeout(() => {
+          setShowError(false);
+        }, 8000);
       }
     } catch (error) {
       setShowError(true);
       setErrorMessage(error?.message ?? 'Login failed. Please try again.');
+      setTimeout(() => {
+        setShowError(false);
+      }, 8000);
     } finally {
       // setLoading(false);
     }
