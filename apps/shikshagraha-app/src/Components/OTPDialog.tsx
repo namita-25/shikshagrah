@@ -224,7 +224,7 @@ const OTPDialog: React.FC<OTPDialogProps> = ({
               },
             }}
           >
-            {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+            {resendTimer > 0 ? `Code expires in ${resendTimer}s` : 'Resend OTP'}
           </Button>
         </Box>
       </DialogContent>
