@@ -46,7 +46,7 @@ export default function Register() {
         'app',
         'www',
         'dev',
-        'qa',
+        '-qa',
         'staging',
         'tekdinext',
         'org',
