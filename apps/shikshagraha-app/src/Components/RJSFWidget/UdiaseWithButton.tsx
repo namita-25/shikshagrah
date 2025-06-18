@@ -138,13 +138,13 @@ const UdiaseWithButton = ({
             sx: {
               '& .MuiInputBase-input': {
                 padding: '10px 12px',
-                fontSize: '12px',
+                fontSize: '17px',
               },
             },
           }}
           InputLabelProps={{
             sx: {
-              fontSize: '12px',
+              fontSize: '17px',
               '&.Mui-focused': {
                 transform: 'translate(14px, -6px) scale(0.75)',
                 color: '#582E92',
