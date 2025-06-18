@@ -74,7 +74,7 @@ WidgetProps) => {
       <InputLabel
         id="demo-multiple-checkbox-label"
         sx={{
-          fontSize: '12px',
+          fontSize: '17px',
           display: 'flex',
           alignItems: 'center',
           '&.Mui-focused': {
@@ -117,7 +117,7 @@ WidgetProps) => {
         sx={{
           '& .MuiSelect-select': {
             padding: '10px 12px',
-            fontSize: '12px',
+            fontSize: '17px',
           },
         }}
         error={false}
