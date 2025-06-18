@@ -286,7 +286,7 @@ const CustomTextFieldWidget = (props: WidgetProps) => {
         }}
         InputLabelProps={{
           sx: {
-            fontSize: '17px',
+            fontSize: '12px',
             '&.Mui-focused': {
               transform: 'translate(14px, -6px) scale(0.75)',
               color: '#582E92',

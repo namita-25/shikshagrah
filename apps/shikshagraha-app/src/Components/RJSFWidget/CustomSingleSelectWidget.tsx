@@ -112,7 +112,7 @@ const CustomSingleSelectWidget = ({
       <InputLabel
         id={`${id}-label`}
         sx={{
-          fontSize: '17px',
+          fontSize: '12px',
           '&.Mui-focused': {
             transform: 'translate(14px, -6px) scale(0.75)',
             color: '#582E92',
@@ -151,7 +151,7 @@ const CustomSingleSelectWidget = ({
         sx={{
           '& .MuiSelect-select': {
             padding: '10px 12px',
-            fontSize: '17px',
+            fontSize: '12px',
           },
         }}
       >
