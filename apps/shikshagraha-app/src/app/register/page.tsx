@@ -34,13 +34,15 @@ export default function Register() {
   const [subRoles, setSubRoles] = useState<any[]>([]);
   const previousRole = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const currentDomain = 'shikshagraha-qa.tekdinext.com';
-      localStorage.setItem('origin', currentDomain);
-      setDomain(currentDomain);
-    }
-  }, []);
+ useEffect(() => {
+   if (typeof window !== 'undefined') {
+     const currentDomain = window.location.hostname;
+     console.log("current",currentDomain)
+     localStorage.setItem('origin', currentDomain);
+     setDomain(currentDomain);
+   }
+ }, []);
+
 
   useEffect(() => {
     const fetchSchema = async () => {
