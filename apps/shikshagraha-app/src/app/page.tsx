@@ -38,6 +38,7 @@ export default function Login() {
   const unAuth = queryRouter.get('unAuth');
   const basePath = AppConst?.BASEPATH;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [displayName, setDisplayName] = useState('');
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
   useEffect(() => {
