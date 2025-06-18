@@ -34,36 +34,41 @@ export default function Register() {
   const previousRole = useRef<string | null>(null);
   const [displayName, setDisplayName] = useState('');
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
+useEffect(() => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
 
-      // Step 1: Split by dot
-      const parts = hostname.split('.');
+    const parts = hostname.split('.');
 
-      // Step 2: Find the meaningful domain part (skip known subdomains and suffixes)
-      const skipList = [
-        'app',
-        'www',
-        'dev',
-        '-qa',
-        'staging',
-        'tekdinext',
-        'org',
-        'com',
-        'net',
-      ];
-      const coreDomain =
-        parts.find((part) => !skipList.includes(part.toLowerCase())) ||
-        'default';
+    const skipList = [
+      'app',
+      'www',
+      'dev',
+      'staging',
+      'tekdinext',
+      'org',
+      'com',
+      'net',
+    ];
 
-      // Step 3: Format display name from domain name (e.g., shikshagraha → Shikshagea)
-      const displayName = formatDisplayName(coreDomain);
+    // Step 1: Find the most likely base domain part
+    const domainPart =
+      parts.find((part) => !skipList.includes(part.toLowerCase())) || 'default';
 
-      setDisplayName(displayName);
-      localStorage.setItem('origin', coreDomain);
-    }
-  }, []);
+    // Step 2: Remove suffixes like -qa, -dev, etc. if present
+    const knownSuffixes = ['-qa', '-dev', '-staging'];
+    const coreDomain = knownSuffixes.reduce((name, suffix) => {
+      return name.endsWith(suffix) ? name.replace(suffix, '') : name;
+    }, domainPart);
+
+    // Step 3: Map or format display name
+    const displayName = formatDisplayName(coreDomain);
+
+    setDisplayName(displayName);
+    localStorage.setItem('origin', coreDomain);
+  }
+}, []);
+
   const formatDisplayName = (domain: string): string => {
     // Custom rules per domain (if needed)
     if (domain === 'shikshagraha') return 'shikshagraha';

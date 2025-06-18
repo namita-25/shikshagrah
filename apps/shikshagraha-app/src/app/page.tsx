@@ -52,6 +52,41 @@ export default function Login() {
     }, 100);
     return () => clearTimeout(timer);
   }, []);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+
+      const parts = hostname.split('.');
+
+      const skipList = [
+        'app',
+        'www',
+        'dev',
+        'staging',
+        'tekdinext',
+        'org',
+        'com',
+        'net',
+      ];
+
+      // Step 1: Find the most likely base domain part
+      const domainPart =
+        parts.find((part) => !skipList.includes(part.toLowerCase())) ||
+        'default';
+
+      // Step 2: Remove suffixes like -qa, -dev, etc. if present
+      const knownSuffixes = ['-qa', '-dev', '-staging'];
+      const coreDomain = knownSuffixes.reduce((name, suffix) => {
+        return name.endsWith(suffix) ? name.replace(suffix, '') : name;
+      }, domainPart);
+
+      // Step 3: Map or format display name
+      const displayName = formatDisplayName(coreDomain);
+
+      setDisplayName(displayName);
+      localStorage.setItem('origin', coreDomain);
+    }
+  }, []);
   const handleChange =
     (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
       setShowError(false);
@@ -236,7 +271,11 @@ export default function Login() {
           >
             <Box
               component="img"
-              src={`/assets/images/SG_Logo.jpg`}
+              src={
+                displayName === 'shikshalokam'
+                  ? '/assets/images/SG_Logo.png'
+                  : '/assets/images/SG_Logo.jpg'
+              }
               alt="logo"
               sx={{
                 width: '70%',
