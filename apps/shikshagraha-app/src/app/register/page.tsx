@@ -71,9 +71,9 @@ useEffect(() => {
 
   const formatDisplayName = (domain: string): string => {
     // Custom rules per domain (if needed)
-    if (domain === 'shikshagraha') return 'shikshagraha';
-    if (domain === 'shikshalokam') return 'shikshalokam';
-    if (domain === 'shikshagrah') return 'shikshagrah';
+    if (domain === 'shikshagraha') return 'Shikshagraha';
+    if (domain === 'shikshalokam') return 'Shikshalokam';
+    if (domain === 'shikshagrah') return 'Shikshagraha';
     // Default: Capitalize first letter
     return domain.charAt(0).toUpperCase() + domain.slice(1);
   };
@@ -223,20 +223,18 @@ useEffect(() => {
           <StaticHeader />
           <Box
             sx={{
-              mx: 'auto',
-              width: '100%',
-              maxWidth: {
-                xs: '90%',
-                sm: 500,
-                md: 600,
+              ml: 'auto',
+              mr: 'auto',
+              width: {
+                xs: '90vw',
+                md: '50vw',
               },
-              mt: {
-                xs: 2,
-                sm: 4,
-              },
-              px: {
-                xs: 2,
-                sm: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              // bgcolor: '#fff',
+              p: {
+                xs: '20px',
+                md: '40px',
               },
             }}
           >

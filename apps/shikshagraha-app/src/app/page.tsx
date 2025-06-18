@@ -90,9 +90,9 @@ export default function Login() {
   }, []);
     const formatDisplayName = (domain: string): string => {
       // Custom rules per domain (if needed)
-      if (domain === 'shikshagraha') return 'shikshagraha';
-      if (domain === 'shikshalokam') return 'shikshalokam';
-      if (domain === 'shikshagrah') return 'shikshagrah';
+     if (domain === 'shikshagraha') return 'Shikshagraha';
+     if (domain === 'shikshalokam') return 'Shikshalokam';
+     if (domain === 'shikshagrah') return 'Shikshagraha';
       // Default: Capitalize first letter
       return domain.charAt(0).toUpperCase() + domain.slice(1);
     };

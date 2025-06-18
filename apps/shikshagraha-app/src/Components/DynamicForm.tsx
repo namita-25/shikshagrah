@@ -92,6 +92,8 @@ const DynamicForm = ({
   const [usernameError, setUsernameError] = useState('');
   const [isUsernameValid, setIsUsernameValid] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
+  const [errorButton, setErrorButton] = useState(false);
+
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -101,6 +103,7 @@ const DynamicForm = ({
   };
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
+    setErrorButton(false);
     if (formData?.dob) {
       let age = calculateAgeFromDate(formData?.dob);
       let oldFormSchema = formSchema;
@@ -865,6 +868,7 @@ const DynamicForm = ({
         if (response?.data?.message === 'Username is already taken') {
           setErrorMessage(response?.data?.message);
           setShowError(true);
+          setErrorButton(true);
           setAlertSeverity('error');
           setIsUsernameValid(false);
           setTimeout(() => {
@@ -872,6 +876,7 @@ const DynamicForm = ({
           }, 8000);
         } else {
           setErrorMessage('');
+          setErrorButton(true);
           setShowError(true);
           setTimeout(() => {
             setShowError(false);
@@ -1255,6 +1260,7 @@ const DynamicForm = ({
     return isValid;
   };
   const handleSendOtp = async () => {
+    setErrorButton(false);
     const customFields = Object.entries(fieldIdMapping).flatMap(
       ([name, fieldId]) => {
         let fieldValue = formData[name] ?? '';
@@ -1330,7 +1336,7 @@ const DynamicForm = ({
     } else {
       if (registrationResponse?.message === 'INVALID_ORG_registration_code') {
         setShowError(true);
-
+        setErrorButton(true);
         setAlertSeverity('error');
         setErrorMessage('Invalid Organisation');
         setTimeout(() => {
@@ -1338,6 +1344,7 @@ const DynamicForm = ({
         }, 8000);
       } else {
         setShowError(true);
+        setErrorButton(true);
         setAlertSeverity('error');
         setErrorMessage(registrationResponse.message);
         setTimeout(() => {
@@ -1433,6 +1440,7 @@ const DynamicForm = ({
     } else {
       setShowError(true);
       setAlertSeverity('error');
+      setErrorButton(true);
       console.log('registrationResponse', registrationResponse);
       setErrorMessage(registrationResponse.data.message);
       setTimeout(() => {
@@ -1461,6 +1469,7 @@ const DynamicForm = ({
 
         if (tenantResponse?.result?.status === 'archived') {
           setShowError(true);
+          setErrorButton(true);
           setErrorMessage('The user is decativated please contact admin');
           setTimeout(() => {
             setShowError(false);
@@ -1502,6 +1511,7 @@ const DynamicForm = ({
                 router.push(redirectUrl);
               } else {
                 setShowError(true);
+                setErrorButton(true);
                 setErrorMessage(
                   'The user does not belong to the same organization.'
                 );
@@ -1516,6 +1526,7 @@ const DynamicForm = ({
         // Check rootOrgId and route or show error
       } else {
         setShowError(true);
+        setErrorButton(true);
         setErrorMessage('Login failed. Invalid Username or Password.');
         setTimeout(() => {
           setShowError(false);
@@ -1523,6 +1534,7 @@ const DynamicForm = ({
       }
     } catch (error) {
       setShowError(true);
+      setErrorButton(true);
       setErrorMessage(error?.message ?? 'Login failed. Please try again.');
       setTimeout(() => {
         setShowError(false);
@@ -1550,6 +1562,16 @@ const DynamicForm = ({
     );
   };
   console.log('form', formData, validator);
+  console.log({
+    errorButton,
+    firstName: formData?.firstName,
+    password: formData?.password,
+    confirm: formData?.confirm_password,
+    emailOrMobile: formData?.email || formData?.mobile,
+    subRoleValid: formData?.['Sub-Role'] && formData['Sub-Role'].length > 0,
+    validationErrors: hasValidationErrors(),
+  });
+
   return (
     <>
       {errorMessage && showError && (
@@ -1596,6 +1618,7 @@ const DynamicForm = ({
               onClick={handleSendOtp}
               // onClick={handleRegister}
               disabled={
+                errorButton ||
                 !formData?.firstName ||
                 !formData?.password ||
                 (!formData?.email && !formData?.mobile) ||
