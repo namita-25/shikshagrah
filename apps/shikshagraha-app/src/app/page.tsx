@@ -282,14 +282,14 @@ export default function Login() {
             <Box
               component="img"
               src={
-                displayName === 'shikshalokam'
+                displayName === 'Shikshalokam'
                   ? '/assets/images/SG_Logo.png'
                   : '/assets/images/SG_Logo.jpg'
               }
               alt="logo"
               sx={{
-                width: '70%',
-                height: '70%',
+                width: '50%',
+                height: '50%',
                 borderRadius: '50%',
                 objectFit: 'cover',
               }}
