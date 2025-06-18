@@ -88,6 +88,15 @@ export default function Login() {
       localStorage.setItem('origin', coreDomain);
     }
   }, []);
+    const formatDisplayName = (domain: string): string => {
+      // Custom rules per domain (if needed)
+      if (domain === 'shikshagraha') return 'shikshagraha';
+      if (domain === 'shikshalokam') return 'shikshalokam';
+      if (domain === 'shikshagrah') return 'shikshagrah';
+      // Default: Capitalize first letter
+      return domain.charAt(0).toUpperCase() + domain.slice(1);
+    };
+
   const handleChange =
     (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
       setShowError(false);
