@@ -3,7 +3,6 @@ import { useEffect, useState, useRef } from 'react';
 import { generateRJSFSchema } from '../../utils/generateSchemaFromAPI';
 import DynamicForm from '../../Components/DynamicForm';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-
 import {
   Box,
   Button,
@@ -33,16 +32,46 @@ export default function Register() {
   const [rolesList, setRolesList] = useState<any[]>([]);
   const [subRoles, setSubRoles] = useState<any[]>([]);
   const previousRole = useRef<string | null>(null);
+  const [displayName, setDisplayName] = useState('');
 
- useEffect(() => {
-   if (typeof window !== 'undefined') {
-     const currentDomain = window.location.hostname;
-     console.log("current",currentDomain)
-     localStorage.setItem('origin', currentDomain);
-     setDomain(currentDomain);
-   }
- }, []);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
 
+      // Step 1: Split by dot
+      const parts = hostname.split('.');
+
+      // Step 2: Find the meaningful domain part (skip known subdomains and suffixes)
+      const skipList = [
+        'app',
+        'www',
+        'dev',
+        'qa',
+        'staging',
+        'tekdinext',
+        'org',
+        'com',
+        'net',
+      ];
+      const coreDomain =
+        parts.find((part) => !skipList.includes(part.toLowerCase())) ||
+        'default';
+
+      // Step 3: Format display name from domain name (e.g., shikshagraha → Shikshagea)
+      const displayName = formatDisplayName(coreDomain);
+
+      setDisplayName(displayName);
+      localStorage.setItem('origin', coreDomain);
+    }
+  }, []);
+  const formatDisplayName = (domain: string): string => {
+    // Custom rules per domain (if needed)
+    if (domain === 'shikshagraha') return 'shikshagraha';
+    if (domain === 'shikshalokam') return 'shikshalokam';
+    if (domain === 'shikshagrah') return 'shikshagrah';
+    // Default: Capitalize first letter
+    return domain.charAt(0).toUpperCase() + domain.slice(1);
+  };
 
   useEffect(() => {
     const fetchSchema = async () => {
@@ -155,7 +184,7 @@ export default function Register() {
               },
             }}
           >
-            Shikshagraha
+            {displayName}
           </Typography>
         </Grid>
       </Grid>
@@ -219,7 +248,7 @@ export default function Register() {
                 },
               }}
             >
-              Welcome to Shikshagraha
+              Welcome to {displayName}
             </Typography>
 
             {formSchema && (
