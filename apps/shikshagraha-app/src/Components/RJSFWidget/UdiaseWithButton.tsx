@@ -115,47 +115,49 @@ const UdiaseWithButton = ({
   return (
     <Box display="flex" flexDirection="column" gap={1}>
       <Box display="flex" alignItems="center" gap={1}>
-        <TextField
-          fullWidth
-          id={id}
-          label={
-            <>
-              {label} <span style={{ color: 'red' }}>*</span>
-            </>
-          }
-          value={localValue}
-          required={required}
-          disabled={disabled || readonly}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onFocus={handleFocus}
-          placeholder={placeholder}
-          error={displayErrors.length > 0 || !!errorMessage}
-          helperText={errorMessage || displayErrors.join(', ')}
-          variant="outlined"
-          size="small"
-          InputProps={{
-            sx: {
-              '& .MuiInputBase-input': {
-                padding: '10px 12px',
+        <Box sx={{ flex: 1 }}>
+          <TextField
+            fullWidth
+            id={id}
+            label={
+              <>
+                {label} <span style={{ color: 'red' }}>*</span>
+              </>
+            }
+            value={localValue}
+            required={required}
+            disabled={disabled || readonly}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            placeholder={placeholder}
+            error={displayErrors.length > 0 || !!errorMessage}
+            helperText={errorMessage || displayErrors.join(', ')}
+            variant="outlined"
+            size="small"
+            InputProps={{
+              sx: {
+                '& .MuiInputBase-input': {
+                  padding: '10px 12px',
+                  fontSize: '12px',
+                },
+              },
+            }}
+            InputLabelProps={{
+              sx: {
                 fontSize: '12px',
+                '&.Mui-focused': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  color: '#582E92',
+                },
+                '&.MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  color: '#582E92',
+                },
               },
-            },
-          }}
-          InputLabelProps={{
-            sx: {
-              fontSize: '12px',
-              '&.Mui-focused': {
-                transform: 'translate(14px, -6px) scale(0.75)',
-                color: '#582E92',
-              },
-              '&.MuiInputLabel-shrink': {
-                transform: 'translate(14px, -6px) scale(0.75)',
-                color: '#582E92',
-              },
-            },
-          }}
-        />
+            }}
+          />
+        </Box>
 
         <Button
           variant="contained"
@@ -174,7 +176,9 @@ const UdiaseWithButton = ({
             '&:hover': {
               bgcolor: '#543E98',
             },
-            width: '20%',
+            height: '40px', // manually match TextField height
+            alignSelf: 'flex-start', // ensure alignment at top
+            mt: '4px', // slight offset to match baseline
           }}
         >
           Fetch
