@@ -77,7 +77,7 @@ export default function Login() {
 
       // Step 2: Remove suffixes like -qa, -dev, etc. if present
       const knownSuffixes = ['-qa', '-dev', '-staging'];
-      const coreDomain = knownSuffixes.reduce((name, suffix) => {
+      let coreDomain = knownSuffixes.reduce((name, suffix) => {
         return name.endsWith(suffix) ? name.replace(suffix, '') : name;
       }, domainPart);
 
