@@ -34,40 +34,43 @@ export default function Register() {
   const previousRole = useRef<string | null>(null);
   const [displayName, setDisplayName] = useState('');
 
-useEffect(() => {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
 
-    const parts = hostname.split('.');
+      const parts = hostname.split('.');
 
-    const skipList = [
-      'app',
-      'www',
-      'dev',
-      'staging',
-      'tekdinext',
-      'org',
-      'com',
-      'net',
-    ];
+      const skipList = [
+        'app',
+        'www',
+        'dev',
+        'staging',
+        'tekdinext',
+        'org',
+        'com',
+        'net',
+      ];
 
-    // Step 1: Find the most likely base domain part
-    const domainPart =
-      parts.find((part) => !skipList.includes(part.toLowerCase())) || 'default';
+      // Step 1: Find the most likely base domain part
+      const domainPart =
+        parts.find((part) => !skipList.includes(part.toLowerCase())) ||
+        'default';
 
-    // Step 2: Remove suffixes like -qa, -dev, etc. if present
-    const knownSuffixes = ['-qa', '-dev', '-staging'];
-    const coreDomain = knownSuffixes.reduce((name, suffix) => {
-      return name.endsWith(suffix) ? name.replace(suffix, '') : name;
-    }, domainPart);
+      // Step 2: Remove suffixes like -qa, -dev, etc. if present
+      const knownSuffixes = ['-qa', '-dev', '-staging'];
+      let coreDomain = knownSuffixes.reduce((name, suffix) => {
+        return name.endsWith(suffix) ? name.replace(suffix, '') : name;
+      }, domainPart);
 
-    // Step 3: Map or format display name
-    const displayName = formatDisplayName(coreDomain);
-
-    setDisplayName(displayName);
-    localStorage.setItem('origin', coreDomain);
-  }
-}, []);
+      // Step 3: Map or format display name
+      const displayName = formatDisplayName(coreDomain);
+      if (coreDomain === 'shikshagrah') {
+        coreDomain = 'shikshagraha';
+      }
+      setDisplayName(displayName);
+      localStorage.setItem('origin', coreDomain);
+    }
+  }, []);
 
   const formatDisplayName = (domain: string): string => {
     // Custom rules per domain (if needed)

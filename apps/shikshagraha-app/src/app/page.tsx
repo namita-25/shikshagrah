@@ -13,7 +13,7 @@ import {
   Grid,
   InputAdornment,
   ButtonBase,
-  Snackbar
+  Snackbar,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -38,7 +38,7 @@ export default function Login() {
   const unAuth = queryRouter.get('unAuth');
   const basePath = AppConst?.BASEPATH;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
   useEffect(() => {
@@ -85,17 +85,20 @@ export default function Login() {
       const displayName = formatDisplayName(coreDomain);
 
       setDisplayName(displayName);
+      if (coreDomain === 'shikshagrah') {
+        coreDomain = 'shikshagraha';
+      }
       localStorage.setItem('origin', coreDomain);
     }
   }, []);
-    const formatDisplayName = (domain: string): string => {
-      // Custom rules per domain (if needed)
-     if (domain === 'shikshagraha') return 'Shikshagraha';
-     if (domain === 'shikshalokam') return 'Shikshalokam';
-     if (domain === 'shikshagrah') return 'Shikshagraha';
-      // Default: Capitalize first letter
-      return domain.charAt(0).toUpperCase() + domain.slice(1);
-    };
+  const formatDisplayName = (domain: string): string => {
+    // Custom rules per domain (if needed)
+    if (domain === 'shikshagraha') return 'Shikshagraha';
+    if (domain === 'shikshalokam') return 'Shikshalokam';
+    if (domain === 'shikshagrah') return 'Shikshagraha';
+    // Default: Capitalize first letter
+    return domain.charAt(0).toUpperCase() + domain.slice(1);
+  };
 
   const handleChange =
     (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,7 +197,7 @@ export default function Login() {
 
   const remoteUnAuthToaster = () => {
     router.push('/');
-  }
+  };
   return (
     <Box
       sx={{
