@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
-import { TextField, Button, Box } from '@mui/material';
+import { TextField, Button, Box, Typography } from '@mui/material';
 import { WidgetProps } from '@rjsf/utils';
 import { fetchContentOnUdise } from '../../services/LoginService';
 
@@ -113,8 +113,9 @@ const UdiaseWithButton = ({
   };
 
   return (
-    <Box display="flex" flexDirection="column" gap={1}>
-      <Box display="flex" alignItems="center" gap={1}>
+    <Box>
+      <Box display="flex" flexDirection="row" alignItems="flex-start" gap={1}>
+        {/* TextField (without helper text pushing layout) */}
         <Box sx={{ flex: 1 }}>
           <TextField
             fullWidth
@@ -132,7 +133,6 @@ const UdiaseWithButton = ({
             onFocus={handleFocus}
             placeholder={placeholder}
             error={displayErrors.length > 0 || !!errorMessage}
-            helperText={errorMessage || displayErrors.join(', ')}
             variant="outlined"
             size="small"
             InputProps={{
@@ -159,6 +159,7 @@ const UdiaseWithButton = ({
           />
         </Box>
 
+        {/* Button */}
         <Button
           variant="contained"
           size="small"
@@ -176,14 +177,22 @@ const UdiaseWithButton = ({
             '&:hover': {
               bgcolor: '#543E98',
             },
-            height: '40px', // manually match TextField height
-            alignSelf: 'flex-start', // ensure alignment at top
-            mt: '4px', // slight offset to match baseline
+            height: '40px',
+            mt: '1px', // slight vertical alignment tweak
           }}
         >
           Fetch
         </Button>
       </Box>
+      {/* Show helper/error text below both elements */}
+
+      {(displayErrors.length > 0 || errorMessage) && (
+        <Box mt={0.5} ml={0.5}>
+          <Typography variant="caption" color="error" sx={{ fontSize: '11px' }}>
+            {errorMessage || displayErrors.join(', ')}
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

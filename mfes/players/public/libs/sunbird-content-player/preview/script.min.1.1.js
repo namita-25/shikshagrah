@@ -72916,14 +72916,14 @@
               (e.sortingIndex = 0),
               (e.users = []);
             var r = EkstepRendererAPI.getGlobalConfig();
-            "undefined" != typeof localPreview &&
-              "local" === localPreview &&
+            'undefined' != typeof localPreview &&
+              'local' === localPreview &&
               (r.assetbase = serverPath + r.assetbase),
               (e.safeApply = function (e) {
                 if (this.$root) {
                   var t = this.$root.$$phase;
-                  "$apply" === t || "$digest" === t
-                    ? e && "function" == typeof e && e()
+                  '$apply' === t || '$digest' === t
+                    ? e && 'function' == typeof e && e()
                     : this.$apply(e);
                 }
               }),
@@ -72931,44 +72931,45 @@
                 t.registerBackButtonAction(function () {
                   if (
                     EkstepRendererAPI.hasEventListener(
-                      EkstepRendererEvents["renderer:device:back"]
+                      EkstepRendererEvents['renderer:device:back']
                     )
                   )
                     EkstepRendererAPI.dispatchEvent(
-                      EkstepRendererEvents["renderer:device:back"]
+                      EkstepRendererEvents['renderer:device:back']
                     );
                   else {
                     var e =
                         Renderer && !Renderer.running
-                          ? "EXIT_APP"
-                          : "EXIT_CONTENT",
+                          ? 'EXIT_APP'
+                          : 'EXIT_CONTENT',
                       t = getCurrentStageId();
                     TelemetryService.interact(
-                      "TOUCH",
-                      "DEVICE_BACK_BTN",
-                      "EXIT",
+                      'TOUCH',
+                      'DEVICE_BACK_BTN',
+                      'EXIT',
                       { type: e, stageId: t }
                     ),
                       contentExitCall();
                   }
                 }, 100),
-                  t.on("pause", function () {
+                  t.on('pause', function () {
                     Renderer && Renderer.pause(),
                       TelemetryService.interrupt(
-                        "BACKGROUND",
+                        'BACKGROUND',
                         getCurrentStageId
                       );
                   }),
-                  t.on("resume", function () {
+                  t.on('resume', function () {
                     Renderer && Renderer.resume(),
-                      TelemetryService.interrupt("RESUME", getCurrentStageId);
+                      TelemetryService.interrupt('RESUME', getCurrentStageId);
                   });
               }),
               splashScreen.addEvents(),
-              org.ekstep.service.init(),
-              "undefined" == typeof Promise &&
+              typeof genieservice !== 'undefined' && org.ekstep.service.init(),
+              // org.ekstep.service.init(),
+              'undefined' == typeof Promise &&
                 (alert(
-                  "Your device isn’t compatible with this version of Genie."
+                  'Your device isn’t compatible with this version of Genie.'
                 ),
                 exitApp()),
               e.addIonicEvents(),
@@ -72978,23 +72979,23 @@
                   MobileAccessibility.usePreferredTextZoom(!1),
                   window.navigationbar.setUp(!0),
                   navigationbar.hideNavigationBar())
-                : (r.recorder = "android"),
+                : (r.recorder = 'android'),
               window.StatusBar && StatusBar.styleDefault(),
               GlobalContext.init(packageName, version)
                 .then(function (e) {
-                  ("undefined" != typeof localPreview &&
-                    "local" === localPreview) ||
+                  ('undefined' != typeof localPreview &&
+                    'local' === localPreview) ||
                     (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
                       navigator.userAgent.toLowerCase()
                     ) &&
                       org.ekstep.contentrenderer.device());
                 })
                 .catch(function (e) {
-                  console.log("Error Globalcontext.init:", e),
+                  console.log('Error Globalcontext.init:', e),
                     EkstepRendererAPI.logErrorEvent(e, {
-                      type: "system",
-                      severity: "fatal",
-                      action: "play",
+                      type: 'system',
+                      severity: 'fatal',
+                      action: 'play',
                     }),
                     alert(e.errors),
                     exitApp();

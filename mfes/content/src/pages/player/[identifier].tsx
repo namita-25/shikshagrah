@@ -20,13 +20,13 @@ const PlayerPage: React.FC<PlayerPageProps> = ({ id }) => {
       courseId && unitId ? `&courseId=${courseId}&unitId=${unitId}` : ''
     }`
   );
-    const onBackClick = () => {
-      router.back();
-    };
+  const onBackClick = () => {
+    router.back();
+  };
   return (
     <Layout
       showTopAppBar={{
-         title: '',
+        title: '',
         showMenuIcon: true,
         showBackIcon: true,
         backIconClick: onBackClick,

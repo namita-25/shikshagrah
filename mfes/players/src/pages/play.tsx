@@ -14,7 +14,7 @@ import {
   V2PlayerConfig,
 } from '../utils/url.config';
 import Loader from '../components/Loader';
-import {  Layout } from '@shared-lib';
+import { Layout } from '@shared-lib';
 import { useRouter } from 'next/router';
 
 const SunbirdPlayers = dynamic(() => import('../components/players/Players'), {
@@ -92,7 +92,7 @@ const Players: React.FC<SunbirdPlayerProps> = ({
   return (
     <Layout
       showTopAppBar={{
-         title: '',
+        title: '',
         showMenuIcon: true,
         showBackIcon: true,
         backIconClick: onBackClick,
