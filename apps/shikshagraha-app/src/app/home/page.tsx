@@ -86,8 +86,16 @@ export default function Home() {
   };
 
   const handleCardClick = (card) => {
-    router.push(`${card.url}`);
-    // window.location.href = buildProgramUrl(card.url, card.sameOrigin);
+    // router.push(`${card.url}`);
+    buildProgramUrl(card.url, card.sameOrigin);
+  };
+
+  const buildProgramUrl = (path: string, sameOrigin: boolean): string => {
+    if (sameOrigin) {
+      router.push(`${path}`);
+    } else {
+      window.location.href = path + localStorage.getItem('accToken');
+    }
   };
 
   const buildProgramUrl = (path: string, sameOrigin: boolean): string => {
