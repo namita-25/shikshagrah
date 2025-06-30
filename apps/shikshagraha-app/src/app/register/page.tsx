@@ -85,7 +85,9 @@ export default function Register() {
     const fetchSchema = async () => {
       try {
         setLoading(true);
-
+        const origin = localStorage.getItem('origin') || '';
+        const isShikshalokam = origin.includes('shikshalokam');
+        console.log('isShikshalokam', isShikshalokam);
         const rolesResponse = await fetchRoleData();
         const rolesData = rolesResponse?.result ?? [];
         setRolesList(rolesData);
@@ -110,12 +112,13 @@ export default function Register() {
           generateRJSFSchema(fields, selectedRoleObj, rolesData, subrolesData);
 
         console.log('schema', schema);
-        const registrationCodeConfig = meta.registration_code
+        const registrationCodeConfig = meta.registration_code;
 
         setFormSchema({
           ...schema,
           meta: {
             ...schema.meta,
+            isShikshalokam,
             registrationCodeConfig,
           },
         });
