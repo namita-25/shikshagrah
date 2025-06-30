@@ -121,14 +121,14 @@ const DynamicForm = ({
       }
       return formData.registration_code;
     } else {
-      // For other origins, use the configured field from meta
-      const config = schema.meta?.registrationCodeConfig;
-      if (!config?.name) {
+      const regConfig = schema.meta?.registrationCodeConfig;
+
+      if (!regConfig?.name) {
         throw new Error('Registration code configuration is invalid');
       }
 
-      const fieldValue = formData[config.name];
-      const valueKey = config.value_ref || 'externalId';
+      const fieldValue = formData[regConfig.name];
+      const valueKey = regConfig.value_ref || 'externalId';
 
       if (typeof fieldValue === 'object') {
         return fieldValue[valueKey];
