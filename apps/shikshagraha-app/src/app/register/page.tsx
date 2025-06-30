@@ -92,6 +92,8 @@ export default function Register() {
 
         const response = await schemaRead();
         const fields = response?.result?.data?.fields?.result ?? [];
+        const meta = response?.result?.data?.fields?.meta ?? {};
+        console.log('meta', meta);
         if (fields.length === 0) {
           throw new Error('No form fields received from API');
         }
@@ -107,7 +109,17 @@ export default function Register() {
         const { schema, uiSchema, fieldNameToFieldIdMapping } =
           generateRJSFSchema(fields, selectedRoleObj, rolesData, subrolesData);
 
-        setFormSchema(schema);
+        console.log('schema', schema);
+        const registrationCodeConfig = meta.registration_code
+
+        setFormSchema({
+          ...schema,
+          meta: {
+            ...schema.meta,
+            registrationCodeConfig,
+          },
+        });
+        // setFormSchema(schema);
         setUiSchema(uiSchema);
         setFieldNameToFieldIdMapping(fieldNameToFieldIdMapping);
       } catch (error) {
