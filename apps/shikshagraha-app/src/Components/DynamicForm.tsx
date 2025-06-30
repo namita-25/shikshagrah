@@ -1663,7 +1663,6 @@ const DynamicForm = ({
           >
             <Button
               onClick={handleSendOtp}
-              onClick={handleRegister}
               disabled={
                 errorButton ||
                 !formData?.firstName ||
