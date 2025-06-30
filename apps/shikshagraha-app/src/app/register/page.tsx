@@ -85,13 +85,17 @@ export default function Register() {
     const fetchSchema = async () => {
       try {
         setLoading(true);
-
+        const origin = localStorage.getItem('origin') || '';
+        const isShikshalokam = origin.includes('shikshalokam');
+        console.log('isShikshalokam', isShikshalokam);
         const rolesResponse = await fetchRoleData();
         const rolesData = rolesResponse?.result ?? [];
         setRolesList(rolesData);
 
         const response = await schemaRead();
         const fields = response?.result?.data?.fields?.result ?? [];
+        const meta = response?.result?.data?.fields?.meta ?? {};
+        console.log('meta', meta);
         if (fields.length === 0) {
           throw new Error('No form fields received from API');
         }
@@ -107,7 +111,18 @@ export default function Register() {
         const { schema, uiSchema, fieldNameToFieldIdMapping } =
           generateRJSFSchema(fields, selectedRoleObj, rolesData, subrolesData);
 
-        setFormSchema(schema);
+        console.log('schema', schema);
+        const registrationCodeConfig = meta.registration_code;
+
+        setFormSchema({
+          ...schema,
+          meta: {
+            ...schema.meta,
+            isShikshalokam,
+            registrationCodeConfig,
+          },
+        });
+        // setFormSchema(schema);
         setUiSchema(uiSchema);
         setFieldNameToFieldIdMapping(fieldNameToFieldIdMapping);
       } catch (error) {

@@ -94,14 +94,6 @@ export default function Home() {
     if (sameOrigin) {
       router.push(`${path}`);
     } else {
-      window.location.href = path + localStorage.getItem('accToken');
-    }
-  };
-
-  const buildProgramUrl = (path: string, sameOrigin: boolean): string => {
-    if (sameOrigin) {
-      router.push(`${path}`);
-    } else {
       return path + localStorage.getItem('accToken');
     }
   };
@@ -121,7 +113,8 @@ export default function Home() {
         <Box
           sx={{
             minHeight: '100vh',
-            marginTop: { xs: '60px', sm: '90px' },
+            marginTop: { xs: '30px', sm: '90px' },
+            marginBottom: { xs: '60px', sm: '90px' },
             paddingX: { xs: 2, sm: 3 },
           }}
         >

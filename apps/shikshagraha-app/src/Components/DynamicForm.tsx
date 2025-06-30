@@ -101,6 +101,51 @@ const DynamicForm = ({
   const isValidMobile = (mobile: string) => {
     return /^[6-9]\d{9}$/.test(mobile);
   };
+  const getRegistrationCode = (formData) => {
+    const config = schema.meta?.registrationCodeConfig || {
+      name: schema.meta?.registrationCodeConfig,
+    };
+    console.log('schema true', schema);
+    const isShikshalokam = schema.meta?.isShikshalokam;
+    console.log('isShikshalokam', isShikshalokam);
+    console.log('Config:', config); // Check if config is correct
+    console.log('FormData:', formData); // Check full formData
+    console.log('FormData keys:', Object.keys(formData)); // See what keys are present
+    const field = formData[config.name];
+    console.log('Field value:', field); // Now properly logs what you're fetching
+    formData['registration_code'] = formData[config.name];
+    if (isShikshalokam) {
+      // For shikshalokam, use the registration_code field directly from formData
+      if (!formData.registration_code) {
+        throw new Error('Registration code is required for shikshalokam');
+      }
+      return formData.registration_code;
+    } else {
+      // For other origins, use the configured field from meta
+      const config = schema.meta?.registrationCodeConfig;
+      if (!config?.name) {
+        throw new Error('Registration code configuration is invalid');
+      }
+
+      const fieldValue = formData[config.name];
+      const valueKey = config.value_ref || 'externalId';
+
+      if (typeof fieldValue === 'object') {
+        return fieldValue[valueKey];
+      }
+      return fieldValue;
+    }
+    // if (!field) return '';
+
+    // // Get the value reference (default to 'externalId' if not specified)
+    // const valueKey = config.value_ref || 'externalId';
+
+    // // Handle both object and string values
+    // if (typeof field === 'object') {
+    //   return field[valueKey] || '';
+    // }
+    // return field;
+  };
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
     setErrorButton(false);
@@ -1303,7 +1348,9 @@ const DynamicForm = ({
     );
 
     // const userName = formData.firstName;
+    const registrationCode = getRegistrationCode(formData);
 
+    console.log('registrationCode', registrationCode);
     let otpPayload;
     const hasMobile = !!formData.mobile?.trim(); // Checks if user entered any mobile number
     const isValidMobile = /^[6-9]\d{9}$/.test(formData.mobile?.trim() ?? '');
@@ -1317,7 +1364,7 @@ const DynamicForm = ({
       ...(hasMobile && { phone_code: '+91' }),
       password: formData.password,
       // registration_code: 'blr',
-      registration_code: formData.District.externalId, // Using default value as per your curl example
+      registration_code: formData.registration_code.externalId, // Using default value as per your curl example
     };
 
     console.log('1331 payload', otpPayload);
@@ -1616,7 +1663,7 @@ const DynamicForm = ({
           >
             <Button
               onClick={handleSendOtp}
-              // onClick={handleRegister}
+              onClick={handleRegister}
               disabled={
                 errorButton ||
                 !formData?.firstName ||
