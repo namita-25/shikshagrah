@@ -1681,7 +1681,6 @@ const DynamicForm = ({
                 !formData.Role ||
                 !formData?.udise ||
                 !formData?.Udise ||
-                !formData?.['Registration Code'] ||
                 !isUsernameValid ||
                 hasValidationErrors() ||
                 (formData.Role !== 'parents' &&
