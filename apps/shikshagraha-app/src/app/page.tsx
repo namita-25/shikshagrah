@@ -39,6 +39,7 @@ export default function Login() {
   const basePath = AppConst?.BASEPATH;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const passwordRegex =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*()_+\-={}:";'<>?,./\\]).{8,}$/;
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function Login() {
     // Remove readonly after a short delay to prevent autofill
     const timer = setTimeout(() => {
       setReadOnly(false);
-    }, 100);
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
   useEffect(() => {
@@ -120,6 +121,8 @@ export default function Login() {
     setIsAuthenticated(!!localStorage.getItem('accToken'));
   }, []);
   const handleButtonClick = async () => {
+    if (formSubmitted) return; // Prevent duplicate submissions
+    setFormSubmitted(true);
     setShowError(false);
     if (!formData.userName || !formData.password) {
       setError({
@@ -186,6 +189,7 @@ export default function Login() {
       setErrorMessage(error?.message ?? 'Login failed. Please try again.');
     } finally {
       setLoading(false);
+      setFormSubmitted(false);
     }
   };
   const handleRegisterClick = () => {
@@ -258,7 +262,24 @@ export default function Login() {
           style={{ width: '100%' }}
           onSubmit={(e) => {
             e.preventDefault();
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+              // Only submit if the submit button was clearly clicked
+              const isActualSubmit =
+                e.nativeEvent.submitter?.className?.includes('MuiButton-root');
+              if (!isActualSubmit) return;
+            }
             handleButtonClick();
+          }}
+          onInput={(e) => {
+            // Catch autofill events in PWA
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+              if (
+                e.target.name === 'userName' &&
+                e.nativeEvent.inputType === 'insertReplacementText'
+              ) {
+                e.preventDefault();
+              }
+            }
           }}
         >
           {/* Hidden fields to trick Chrome's autofill */}
@@ -303,12 +324,18 @@ export default function Login() {
             label="Email / Mobile / Username"
             value={formData.userName}
             onChange={handleChange('userName')}
+            onInput={(e) => {
+              // Prevent form submission on autofill
+              if (e.nativeEvent.inputType === 'insertReplacementText') {
+                e.preventDefault();
+              }
+            }}
             error={error.userName}
             helperText={error.userName ? 'Username is required' : ''}
             sx={{ mb: 2 }}
-            autoComplete="new-password"
+            autoComplete="off"
             inputProps={{
-              autoComplete: 'new-password',
+              autoComplete: 'off',
               name: 'login-username',
               readOnly: readOnly,
               onFocus: () => setReadOnly(false),
@@ -329,9 +356,9 @@ export default function Login() {
                 ? 'Password must be at least 8 characters long, include numerals, uppercase, lowercase, and special characters.'
                 : ''
             }
-            autoComplete="new-password"
+            autoComplete="off"
             inputProps={{
-              autoComplete: 'new-password',
+              autoComplete: 'off',
               name: 'login-password',
               readOnly: readOnly,
               onFocus: () => setReadOnly(false),
