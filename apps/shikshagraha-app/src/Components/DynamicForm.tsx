@@ -105,32 +105,19 @@ const DynamicForm = ({
     const config = schema.meta?.registrationCodeConfig || {
       name: schema.meta?.registrationCodeConfig,
     };
-    console.log('schema true', schema);
-    // const isShikshalokam = schema.meta?.isShikshalokam;
-    const isShikshalokam = true;
-    console.log('isShikshalokam', isShikshalokam);
-    console.log('Config:', config);
-    console.log('FormData:', formData);
-    console.log('FormData keys:', Object.keys(formData));
-    const field = formData[config.name];
-    console.log('Field value:', field);
-    formData['registration_code'] = formData[config.name];
-    if (isShikshalokam) {
-      formData.registration_code = formData['Registration Code'];
-      formData['Registration Code'] = formData.registration_code;
-      console.log('Registration11 Code:', formData.registration_code);
-      formData.registration_code = {
-        externalId: formData['Registration Code'],
-      };
-      console.log(formData.registration_code.externalId); // 'bbb'
+    const isShikshalokam = schema.meta?.isShikshalokam;
 
-      if (!formData.registration_code) {
+    if (isShikshalokam) {
+      // For Shikshalokam, use the direct value from 'Registration Code' field
+      const userEnteredCode = formData['Registration Code'];
+      if (!userEnteredCode) {
         throw new Error('Registration code is required for shikshalokam');
       }
-      return formData.registration_code;
+      return {
+        externalId: userEnteredCode,
+      };
     } else {
       const regConfig = schema.meta?.registrationCodeConfig;
-
       if (!regConfig?.name) {
         throw new Error('Registration code configuration is invalid');
       }
@@ -143,16 +130,6 @@ const DynamicForm = ({
       }
       return fieldValue;
     }
-    // if (!field) return '';
-
-    // // Get the value reference (default to 'externalId' if not specified)
-    // const valueKey = config.value_ref || 'externalId';
-
-    // // Handle both object and string values
-    // if (typeof field === 'object') {
-    //   return field[valueKey] || '';
-    // }
-    // return field;
   };
   //custom validation on formData for learner fields hide on dob
   useEffect(() => {
@@ -1372,7 +1349,7 @@ const DynamicForm = ({
       ...(hasMobile && { phone_code: '+91' }),
       password: formData.password,
       // registration_code: 'blr',
-      registration_code: formData.registration_code.externalId, // Using default value as per your curl example
+      registration_code: registrationCode.externalId, // Using default value as per your curl example
     };
 
     console.log('1331 payload', otpPayload);
