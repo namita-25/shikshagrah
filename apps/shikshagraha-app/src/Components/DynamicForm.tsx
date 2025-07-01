@@ -106,16 +106,23 @@ const DynamicForm = ({
       name: schema.meta?.registrationCodeConfig,
     };
     console.log('schema true', schema);
-    const isShikshalokam = schema.meta?.isShikshalokam;
+    // const isShikshalokam = schema.meta?.isShikshalokam;
+    const isShikshalokam = true;
     console.log('isShikshalokam', isShikshalokam);
-    console.log('Config:', config); // Check if config is correct
-    console.log('FormData:', formData); // Check full formData
-    console.log('FormData keys:', Object.keys(formData)); // See what keys are present
+    console.log('Config:', config);
+    console.log('FormData:', formData);
+    console.log('FormData keys:', Object.keys(formData));
     const field = formData[config.name];
-    console.log('Field value:', field); // Now properly logs what you're fetching
+    console.log('Field value:', field);
     formData['registration_code'] = formData[config.name];
     if (isShikshalokam) {
-      // For shikshalokam, use the registration_code field directly from formData
+      formData.registration_code = formData['Registration Code'];
+      console.log('Registration11 Code:', formData.registration_code);
+      formData.registration_code = {
+        externalId: formData['Registration Code'],
+      };
+      console.log(formData.registration_code.externalId); // 'bbb'
+
       if (!formData.registration_code) {
         throw new Error('Registration code is required for shikshalokam');
       }
@@ -1663,26 +1670,26 @@ const DynamicForm = ({
           >
             <Button
               onClick={handleSendOtp}
-              disabled={
-                errorButton ||
-                !formData?.firstName ||
-                !formData?.password ||
-                (!formData?.email && !formData?.mobile) ||
-                !formData?.confirm_password ||
-                formData.password !== formData.confirm_password ||
-                !formData.Role ||
-                !formData?.udise ||
-                !formData?.Udise ||
-                !isUsernameValid ||
-                hasValidationErrors() ||
-                (formData.Role !== 'parents' &&
-                  formData.Role !== 'others' &&
-                  formData.Role !== 'youth' &&
-                  (!formData?.['Sub-Role'] ||
-                    formData['Sub-Role'].length === 0))
-                // !formData?.school ||
-                // !formData?.state
-              }
+              // disabled={
+              //   errorButton ||
+              //   !formData?.firstName ||
+              //   !formData?.password ||
+              //   (!formData?.email && !formData?.mobile) ||
+              //   !formData?.confirm_password ||
+              //   formData.password !== formData.confirm_password ||
+              //   !formData.Role ||
+              //   !formData?.udise ||
+              //   !formData?.Udise ||
+              //   !isUsernameValid ||
+              //   hasValidationErrors() ||
+              //   (formData.Role !== 'parents' &&
+              //     formData.Role !== 'others' &&
+              //     formData.Role !== 'youth' &&
+              //     (!formData?.['Sub-Role'] ||
+              //       formData['Sub-Role'].length === 0))
+              //   // !formData?.school ||
+              //   // !formData?.state
+              // }
               sx={{
                 whiteSpace: 'nowrap',
                 bgcolor: '#582E92',
