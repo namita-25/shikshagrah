@@ -52,78 +52,25 @@ const UdiaseWithButton = ({
     try {
       const response = await fetchContentOnUdise(localValue);
 
-      // if (
-      //   !response ||
-      //   response?.status === 500 ||
-      //   !response?.result ||
-      //   response?.result.length === 0
-      // ) {
-      //   setErrorMessage('No school found. Please enter a valid UDISE Code.');
-      //   onFetchData({
-      //     udise: '',
-      //     school: { _id: '', name: '', externalId: '' },
-      //     state: { _id: '', name: '', externalId: '' },
-      //     district: { _id: '', name: '', externalId: '' },
-      //     block: { _id: '', name: '', externalId: '' },
-      //     cluster: { _id: '', name: '', externalId: '' },
-      //   });
-      //   return;
-      // }
+      if (
+        !response ||
+        response?.status === 500 ||
+        !response?.result ||
+        response?.result.length === 0
+      ) {
+        setErrorMessage('No school found. Please enter a valid UDISE Code.');
+        onFetchData({
+          udise: '',
+          school: { _id: '', name: '', externalId: '' },
+          state: { _id: '', name: '', externalId: '' },
+          district: { _id: '', name: '', externalId: '' },
+          block: { _id: '', name: '', externalId: '' },
+          cluster: { _id: '', name: '', externalId: '' },
+        });
+        return;
+      }
 
-      // const locationInfo = response.result[0];
-      const locationInfo = {
-        _id: '6853e3018500f000144a84a7',
-        metaInformation: {
-          targetedEntityTypes: [],
-          externalId: '29210118001',
-          name: 'G LPS BAVIKERE',
-        },
-        childHierarchyPath: [],
-        createdBy: '20',
-        updatedBy: '20',
-        deleted: false,
-        entityTypeId: '6825915c97b5680013e6a148',
-        entityType: 'school',
-        registryDetails: {
-          code: '29210118001',
-          locationId: '29210118001',
-        },
-        tenantId: 'shikshalokam',
-        orgId: 'SLOrg',
-        updatedAt: '2025-06-19T10:14:28.095Z',
-        createdAt: '2025-06-19T10:14:28.095Z',
-        __v: 0,
-        parentInformation: {
-          state: [
-            {
-              _id: '6853e0168500f000144a3ea4',
-              externalId: '29',
-              name: 'Karnataka',
-            },
-          ],
-          district: [
-            {
-              _id: '6853e0828500f000144a3eb0',
-              externalId: 'bengaluruRural',
-              name: 'Bengaluru Rural',
-            },
-          ],
-          block: [
-            {
-              _id: '6853e0bb8500f000144a3f12',
-              externalId: '292101',
-              name: 'Nelamangala',
-            },
-          ],
-          cluster: [
-            {
-              _id: '6853e0e38500f000144a42f6',
-              externalId: '2921010020',
-              name: 'KEMPALINGANAHALLI',
-            },
-          ],
-        },
-      };
+      const locationInfo = response.result[0];
 
       const sampleResponse = {
         udise: localValue,
