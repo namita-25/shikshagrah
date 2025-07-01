@@ -1,7 +1,7 @@
 import Head from 'next/head';
 
 export const metadata = {
-  title: 'Welcome to Shikshalokam',
+  title: 'Welcome to Shikshagraha',
   description: 'Welcome to Shikshalokam',
   viewport: {
     width: 'device-width',
