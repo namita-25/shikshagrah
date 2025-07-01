@@ -1412,6 +1412,8 @@ const DynamicForm = ({
     // const userName = formData.firstName;
     const isMobile = /^[6-9]\d{9}$/.test(formData.mobile);
     console.log(formData.Roles, 'roles');
+    const registrationCode = getRegistrationCode(formData);
+    console.log('registrationCode create register', registrationCode);
     const payload = {
       name:
         formData.firstName + (formData.lastName ? ` ${formData.lastName}` : ''),
@@ -1425,7 +1427,8 @@ const DynamicForm = ({
       block: formData.Block?._id ?? '',
       cluster: formData.Cluster?._id ?? '',
       school: formData.School?._id ?? '',
-      registration_code: formData.District?.externalId ?? '',
+      // registration_code: formData.District?.externalId ?? '',
+      registeration_code: registrationCode.externalId,
       professional_role: localStorage.getItem('role'),
       professional_subroles: getSubRoleExternalIds(),
       otp: Number(otp),
