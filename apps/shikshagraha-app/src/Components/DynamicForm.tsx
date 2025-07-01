@@ -117,6 +117,7 @@ const DynamicForm = ({
     formData['registration_code'] = formData[config.name];
     if (isShikshalokam) {
       formData.registration_code = formData['Registration Code'];
+      formData['Registration Code'] = formData.registration_code;
       console.log('Registration11 Code:', formData.registration_code);
       formData.registration_code = {
         externalId: formData['Registration Code'],
@@ -1670,26 +1671,27 @@ const DynamicForm = ({
           >
             <Button
               onClick={handleSendOtp}
-              // disabled={
-              //   errorButton ||
-              //   !formData?.firstName ||
-              //   !formData?.password ||
-              //   (!formData?.email && !formData?.mobile) ||
-              //   !formData?.confirm_password ||
-              //   formData.password !== formData.confirm_password ||
-              //   !formData.Role ||
-              //   !formData?.udise ||
-              //   !formData?.Udise ||
-              //   !isUsernameValid ||
-              //   hasValidationErrors() ||
-              //   (formData.Role !== 'parents' &&
-              //     formData.Role !== 'others' &&
-              //     formData.Role !== 'youth' &&
-              //     (!formData?.['Sub-Role'] ||
-              //       formData['Sub-Role'].length === 0))
-              //   // !formData?.school ||
-              //   // !formData?.state
-              // }
+              disabled={
+                errorButton ||
+                !formData?.firstName ||
+                !formData?.password ||
+                (!formData?.email && !formData?.mobile) ||
+                !formData?.confirm_password ||
+                formData.password !== formData.confirm_password ||
+                !formData.Role ||
+                !formData?.udise ||
+                !formData?.Udise ||
+                !formData?.['Registration Code'] ||
+                !isUsernameValid ||
+                hasValidationErrors() ||
+                (formData.Role !== 'parents' &&
+                  formData.Role !== 'others' &&
+                  formData.Role !== 'youth' &&
+                  (!formData?.['Sub-Role'] ||
+                    formData['Sub-Role'].length === 0))
+                // !formData?.school ||
+                // !formData?.state
+              }
               sx={{
                 whiteSpace: 'nowrap',
                 bgcolor: '#582E92',
